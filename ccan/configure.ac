@@ -287,6 +287,74 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ ]], [[
     AC_MSG_RESULT([no])
 ])
 
+# __builtin_ctz
+AC_MSG_CHECKING([for __builtin_ctz])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ ]], [[
+	int check[(__builtin_ctz(1 << (sizeof(int) * 8 - 1)) == (sizeof(int) * 8 - 1)) ? 1 : -1];
+	(void) check;
+]])], [ # then
+    AC_DEFINE([HAVE_BUILTIN_CTZ], [1], [Define to 1 if compiler supports __builtin_ctz])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+# __builtin_ctzl
+AC_MSG_CHECKING([for __builtin_ctzl])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ ]], [[
+	int check[(__builtin_ctzl(1 << (sizeof(long) * 8 - 1)) == (sizeof(long) * 8 - 1)) ? 1 : -1];
+	(void) check;
+]])], [ # then
+    AC_DEFINE([HAVE_BUILTIN_CTZL], [1], [Define to 1 if compiler supports __builtin_ctzl])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+# __builtin_ctzll
+AC_MSG_CHECKING([for __builtin_ctzll])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ ]], [[
+	int check[(__builtin_ctzll(1 << (sizeof(long long) * 8 - 1)) == (sizeof(long long) * 8 - 1)) ? 1 : -1];
+	(void) check;
+]])], [ # then
+    AC_DEFINE([HAVE_BUILTIN_CTZLL], [1], [Define to 1 if compiler supports __builtin_ctzll])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+
+# __builtin_ffs
+AC_MSG_CHECKING([for __builtin_ffs])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ ]], [[
+	int check[(__builtin_ffs(0) == 0) ? 1 : -1];
+	(void) check;
+]])], [ # then
+    AC_DEFINE([HAVE_BUILTIN_FFS], [1], [Define to 1 if compiler supports __builtin_ffs])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+# __builtin_ffsl
+AC_MSG_CHECKING([for __builtin_ffsl])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ ]], [[
+	int check[(__builtin_ffsl(0L) == 0) ? 1 : -1];
+	(void) check;
+]])], [ # then
+    AC_DEFINE([HAVE_BUILTIN_FFSL], [1], [Define to 1 if compiler supports __builtin_ffsl])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+# __builtin_ffsll
+AC_MSG_CHECKING([for __builtin_ffsll])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ ]], [[
+	int check[(__builtin_ffsll(0LL) == 0) ? 1 : -1];
+	(void) check;
+]])], [ # then
+    AC_DEFINE([HAVE_BUILTIN_FFSLL], [1], [Define to 1 if compiler supports __builtin_ffsll])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+
 # <byteswap.h>
 AC_MSG_CHECKING([for byteswap.h])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[

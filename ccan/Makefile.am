@@ -2,6 +2,8 @@ noinst_LTLIBRARIES = libccan.la
 libccan_la_SOURCES = \
 	ccan/alignof/alignof.h \
 	ccan/array_size/array_size.h \
+	ccan/bitops/bitops.c \
+	ccan/bitops/bitops.h \
 	ccan/build_assert/build_assert.h \
 	ccan/check_type/check_type.h \
 	ccan/compiler/compiler.h \
@@ -11,6 +13,8 @@ libccan_la_SOURCES = \
 	ccan/err/err.h \
 	ccan/ilog/ilog.c \
 	ccan/ilog/ilog.h \
+	ccan/intmap/intmap.c \
+	ccan/intmap/intmap.h \
 	ccan/io/backend.h \
 	ccan/io/io.c \
 	ccan/io/io.h \
@@ -30,6 +34,8 @@ libccan_la_SOURCES = \
 	ccan/str/str.c \
 	ccan/str/str.h \
 	ccan/str/str_debug.h \
+	ccan/strmap/strmap.c \
+	ccan/strmap/strmap.h \
 	ccan/take/take.c \
 	ccan/take/take.h \
 	ccan/tal/str/str.c \
@@ -46,6 +52,7 @@ libccan_la_SOURCES = \
 EXTRA_DIST = \
 	ccan/alignof/LICENSE \
 	ccan/array_size/LICENSE \
+	ccan/bitops/LICENSE \
 	ccan/build_assert/LICENSE \
 	ccan/check_type/LICENSE \
 	ccan/compiler/LICENSE \
@@ -53,6 +60,7 @@ EXTRA_DIST = \
 	ccan/endian/LICENSE \
 	ccan/err/LICENSE \
 	ccan/ilog/LICENSE \
+	ccan/intmap/LICENSE \
 	ccan/io/LICENSE \
 	ccan/json_escape/LICENSE \
 	ccan/json_out/LICENSE \
@@ -61,6 +69,7 @@ EXTRA_DIST = \
 	ccan/membuf/LICENSE \
 	ccan/short_types/LICENSE \
 	ccan/str/LICENSE \
+	ccan/strmap/LICENSE \
 	ccan/take/LICENSE \
 	ccan/tal/LICENSE \
 	ccan/tal/str/LICENSE \
