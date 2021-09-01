@@ -12,6 +12,12 @@ libccan_la_SOURCES = \
 	ccan/str/str.c \
 	ccan/str/str.h \
 	ccan/str/str_debug.h \
+	ccan/take/take.c \
+	ccan/take/take.h \
+	ccan/tal/str/str.c \
+	ccan/tal/str/str.h \
+	ccan/tal/tal.c \
+	ccan/tal/tal.h \
 	ccan/typesafe_cb/typesafe_cb.h
 
 EXTRA_DIST = \
@@ -23,6 +29,9 @@ EXTRA_DIST = \
 	ccan/likely/LICENSE \
 	ccan/list/LICENSE \
 	ccan/str/LICENSE \
+	ccan/take/LICENSE \
+	ccan/tal/LICENSE \
+	ccan/tal/str/LICENSE \
 	ccan/typesafe_cb/LICENSE \
 	licenses/BSD-MIT \
 	licenses/CC0 \
