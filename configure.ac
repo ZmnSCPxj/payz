@@ -6,7 +6,7 @@ AC_INIT([PayZ], [0.1A], [zmnscpxj@protonmail.com])
 AC_CONFIG_AUX_DIR([auxdir])
 AM_INIT_AUTOMAKE([subdir-objects tar-ustar])
 AC_CONFIG_SRCDIR([main.c])
-AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_HEADERS([payz_config.h]) # CCAN uses config.h, so rename ours.
 AC_CONFIG_MACRO_DIRS([m4])
 LT_INIT([disable-shared])
 

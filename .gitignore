@@ -9,6 +9,8 @@ config.h.in
 *.scan
 config.status
 config.h
+payz_config.h
+payz_config.h.in
 configure
 *.log
 *.m4
