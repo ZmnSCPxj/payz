@@ -15,4 +15,15 @@
 #define typeof __typeof__
 #endif
 
+/* AC_C_BIGENDIAN defines WORDS_BIGENDIAN, convert to the
+ * ccan-expected HAVE_LITTLE_ENDIAN and HAVE_BIG_ENDIAN.
+ * In particular this handles the Apple "Universal" binary
+ * build case.
+ */
+#if WORDS_BIGENDIAN
+#define HAVE_BIG_ENDIAN 1
+#else
+#define HAVE_LITTLE_ENDIAN 1
+#endif
+
 #endif /* !defined(CCAN_COMPAT_CONFIG_H) */

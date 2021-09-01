@@ -5,10 +5,12 @@ libccan_la_SOURCES = \
 	ccan/check_type/check_type.h \
 	ccan/compiler/compiler.h \
 	ccan/container_of/container_of.h \
+	ccan/endian/endian.h \
 	ccan/likely/likely.c \
 	ccan/likely/likely.h \
 	ccan/list/list.c \
 	ccan/list/list.h \
+	ccan/short_types/short_types.h \
 	ccan/str/str.c \
 	ccan/str/str.h \
 	ccan/str/str_debug.h \
@@ -26,8 +28,10 @@ EXTRA_DIST = \
 	ccan/check_type/LICENSE \
 	ccan/compiler/LICENSE \
 	ccan/container_of/LICENSE \
+	ccan/endian/LICENSE \
 	ccan/likely/LICENSE \
 	ccan/list/LICENSE \
+	ccan/short_types/LICENSE \
 	ccan/str/LICENSE \
 	ccan/take/LICENSE \
 	ccan/tal/LICENSE \

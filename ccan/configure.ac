@@ -23,6 +23,8 @@ AC_CHECK_HEADER_STDBOOL
 AC_C_INLINE
 AC_TYPE_SIZE_T
 
+AC_C_BIGENDIAN
+
 AH_BOTTOM([
 #include"compat_config.h"
 ])
@@ -246,6 +248,32 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ ]], [[
 	(void) check;
 ]])], [ # then
     AC_DEFINE([HAVE_BUILTIN_TYPES_COMPATIBLE_P], [1], [Define to 1 if compiler supports __builtin_types_compatible_p])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+
+# <byteswap.h>
+AC_MSG_CHECKING([for byteswap.h])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+	#include<byteswap.h>
+]], [[ ]])], [ # then
+    AC_DEFINE([HAVE_BYTESWAP_H], [1], [Define to 1 if <byteswap.h> exists and contains byteswap functions.])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+# bswap_64 in <byteswap.h>
+AC_MSG_CHECKING([for bswap_64 in byteswap.h])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+	#include<byteswap.h>
+	#include<stdint.h>
+]], [[
+	int64_t x = 42;
+	int64_t y = bswap_64(x);
+	(void) y;
+]])], [ # then
+    AC_DEFINE([HAVE_BSWAP_64], [1], [Define to 1 if <byteswap.h> exists and contains bswap_64.])
     AC_MSG_RESULT([yes])
 ], [ # else
     AC_MSG_RESULT([no])
