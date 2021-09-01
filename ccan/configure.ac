@@ -69,6 +69,150 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[
     AC_MSG_RESULT([no])
 ])
 
+# __attribute__((__cold__))
+AC_MSG_CHECKING([for __attribute__((__cold__))])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+extern void __attribute__((__cold__)) check(void);
+]], [[ ]])], [ # then
+    AC_DEFINE([HAVE_ATTRIBUTE_COLD], [1], [Define to 1 if compiler supports __attribute__((__cold__))])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+
+# __attribute__((__noreturn__))
+AC_MSG_CHECKING([for __attribute__((__noreturn__))])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+extern void __attribute__((__noreturn__)) check(void);
+]], [[ ]])], [ # then
+    AC_DEFINE([HAVE_ATTRIBUTE_NORETURN], [1], [Define to 1 if compiler supports __attribute__((__noreturn__))])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+
+# __attribute__((format(__printf__, ...)))
+AC_MSG_CHECKING([for __attribute__((format(__printf__, ...)))])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+extern void __attribute__((format(__printf__, 1, 2)))
+check(const char *fmt, ...);
+]], [[ ]])], [ # then
+    AC_DEFINE([HAVE_ATTRIBUTE_PRINTF], [1], [Define to 1 if compiler supports __attribute__((format(__printf__, nfmt, narg)))])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+
+# __attribute__((__const__))
+AC_MSG_CHECKING([for __attribute__((__const__))])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+extern int __attribute__((__const__)) check(int);
+]], [[ ]])], [ # then
+    AC_DEFINE([HAVE_ATTRIBUTE_CONST], [1], [Define to 1 if compiler supports __attribute__((__const__))])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+
+# __attribute__((__pure__))
+AC_MSG_CHECKING([for __attribute__((__pure__))])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+extern int __attribute__((__pure__)) check(int);
+]], [[ ]])], [ # then
+    AC_DEFINE([HAVE_ATTRIBUTE_PURE], [1], [Define to 1 if compiler supports __attribute__((__pure__))])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+
+# __attribute__((__unused__))
+AC_MSG_CHECKING([for __attribute__((__unused__))])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+extern int __attribute__((__unused__)) check(int);
+]], [[ ]])], [ # then
+    AC_DEFINE([HAVE_ATTRIBUTE_UNUSED], [1], [Define to 1 if compiler supports __attribute__((__unused__))])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+
+# __attribute__((__used__))
+AC_MSG_CHECKING([for __attribute__((__used__))])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+extern int __attribute__((__used__)) check(int);
+]], [[ ]])], [ # then
+    AC_DEFINE([HAVE_ATTRIBUTE_USED], [1], [Define to 1 if compiler supports __attribute__((__used__))])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+
+# __attribute__((__warn_unused_result__))
+AC_MSG_CHECKING([for __attribute__((__warn_unused_result__))])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+extern int __attribute__((__warn_unused_result__)) check(int);
+]], [[ ]])], [ # then
+    AC_DEFINE([HAVE_WARN_UNUSED_RESULT], [1], [Define to 1 if compiler supports __attribute__((__warn_unused_result__))])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+
+# __attribute__((__deprecated__))
+AC_MSG_CHECKING([for __attribute__((__deprecated__))])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+extern int __attribute__((__deprecated__)) check(int);
+]], [[ ]])], [ # then
+    AC_DEFINE([HAVE_ATTRIBUTE_DEPRECATED], [1], [Define to 1 if compiler supports __attribute__((__deprecated__))])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+
+# __attribute__((__nonnull__))
+AC_MSG_CHECKING([for __attribute__((__nonnull__))])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+extern int check(int *) __attribute__((__nonnull__));
+]], [[ ]])], [ # then
+    AC_DEFINE([HAVE_ATTRIBUTE_NONNULL], [1], [Define to 1 if compiler supports __attribute__((__nonnull__))])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+
+# __attribute__((__sentinel__))
+AC_MSG_CHECKING([for __attribute__((__sentinel__))])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+extern int check(int *, ...) __attribute__((__sentinel__));
+]], [[ ]])], [ # then
+    AC_DEFINE([HAVE_ATTRIBUTE_SENTINEL], [1], [Define to 1 if compiler supports __attribute__((__sentinel__))])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+
+# __builtin_constant_p
+AC_MSG_CHECKING([for __builtin_constant_p])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ ]], [[
+	int check[__builtin_constant_p(1) ? 1 : -1];
+]])], [ # then
+    AC_DEFINE([HAVE_BUILTIN_CONSTANT_P], [1], [Define to 1 if compiler supports __builtin_constant_p])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+
+# __builtin_cpu_supports
+AC_MSG_CHECKING([for __builtin_cpu_supports])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ ]], [[
+	int check[__builtin_cpu_supports("mmx") ? 1 : -1];
+]])], [ # then
+    AC_DEFINE([HAVE_BUILTIN_CPU_SUPPORTS], [1], [Define to 1 if compiler supports __builtin_cpu_supports])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset])
