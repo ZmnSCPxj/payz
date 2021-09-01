@@ -9,6 +9,11 @@ libccan_la_SOURCES = \
 	ccan/endian/endian.h \
 	ccan/ilog/ilog.c \
 	ccan/ilog/ilog.h \
+	ccan/io/backend.h \
+	ccan/io/io.c \
+	ccan/io/io.h \
+	ccan/io/io_plan.h \
+	ccan/io/poll.c \
 	ccan/likely/likely.c \
 	ccan/likely/likely.h \
 	ccan/list/list.c \
@@ -41,6 +46,7 @@ EXTRA_DIST = \
 	ccan/container_of/LICENSE \
 	ccan/endian/LICENSE \
 	ccan/ilog/LICENSE \
+	ccan/io/LICENSE \
 	ccan/likely/LICENSE \
 	ccan/list/LICENSE \
 	ccan/membuf/LICENSE \
