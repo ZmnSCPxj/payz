@@ -10,6 +10,8 @@ libccan_la_SOURCES = \
 	ccan/likely/likely.h \
 	ccan/list/list.c \
 	ccan/list/list.h \
+	ccan/membuf/membuf.c \
+	ccan/membuf/membuf.h \
 	ccan/short_types/short_types.h \
 	ccan/str/str.c \
 	ccan/str/str.h \
@@ -20,6 +22,7 @@ libccan_la_SOURCES = \
 	ccan/tal/str/str.h \
 	ccan/tal/tal.c \
 	ccan/tal/tal.h \
+	ccan/tcon/tcon.h \
 	ccan/typesafe_cb/typesafe_cb.h
 
 EXTRA_DIST = \
@@ -31,11 +34,13 @@ EXTRA_DIST = \
 	ccan/endian/LICENSE \
 	ccan/likely/LICENSE \
 	ccan/list/LICENSE \
+	ccan/membuf/LICENSE \
 	ccan/short_types/LICENSE \
 	ccan/str/LICENSE \
 	ccan/take/LICENSE \
 	ccan/tal/LICENSE \
 	ccan/tal/str/LICENSE \
+	ccan/tcon/LICENSE \
 	ccan/typesafe_cb/LICENSE \
 	licenses/BSD-MIT \
 	licenses/CC0 \

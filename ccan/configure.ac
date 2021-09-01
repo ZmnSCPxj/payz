@@ -279,6 +279,18 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[
     AC_MSG_RESULT([no])
 ])
 
+# If flexible array size is allowed for last field of
+# structure.
+AC_MSG_CHECKING([if flexible array size is allowed for last struct member])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+	struct check { unsigned int x; int arr[]; };
+]], [[ ]])], [ # then
+    AC_DEFINE([HAVE_FLEXIBLE_ARRAY_MEMBER], [1], [Define to 1 if compiler allows empty array size for last struct member.])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset])
