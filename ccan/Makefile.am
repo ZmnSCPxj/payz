@@ -7,6 +7,8 @@ libccan_la_SOURCES = \
 	ccan/compiler/compiler.h \
 	ccan/container_of/container_of.h \
 	ccan/endian/endian.h \
+	ccan/err/err.c \
+	ccan/err/err.h \
 	ccan/ilog/ilog.c \
 	ccan/ilog/ilog.h \
 	ccan/io/backend.h \
@@ -14,6 +16,10 @@ libccan_la_SOURCES = \
 	ccan/io/io.h \
 	ccan/io/io_plan.h \
 	ccan/io/poll.c \
+	ccan/json_escape/json_escape.c \
+	ccan/json_escape/json_escape.h \
+	ccan/json_out/json_out.c \
+	ccan/json_out/json_out.h \
 	ccan/likely/likely.c \
 	ccan/likely/likely.h \
 	ccan/list/list.c \
@@ -45,8 +51,11 @@ EXTRA_DIST = \
 	ccan/compiler/LICENSE \
 	ccan/container_of/LICENSE \
 	ccan/endian/LICENSE \
+	ccan/err/LICENSE \
 	ccan/ilog/LICENSE \
 	ccan/io/LICENSE \
+	ccan/json_escape/LICENSE \
+	ccan/json_out/LICENSE \
 	ccan/likely/LICENSE \
 	ccan/list/LICENSE \
 	ccan/membuf/LICENSE \

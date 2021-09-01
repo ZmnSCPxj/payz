@@ -355,6 +355,27 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[
     AC_MSG_RESULT([no])
 ])
 
+# <err.h>
+AC_MSG_CHECKING([for err.h])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+	#include<err.h>
+	static void check(int arg) {
+		if (arg == 0)
+			err(1, "err %d", arg);
+		if (arg == 1)
+			errx(1, "err %d", arg);
+		if (arg == 3)
+			warn("warn %d", arg);
+		if (arg == 4)
+			warnx("warn %d", arg);
+	}
+]], [[(void)&check;]])], [ # then
+    AC_DEFINE([HAVE_ERR_H], [1], [Define to 1 if <err.h> exists and contains BSD err functions.])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset])
