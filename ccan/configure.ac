@@ -253,6 +253,40 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ ]], [[
     AC_MSG_RESULT([no])
 ])
 
+# __builtin_clz
+AC_MSG_CHECKING([for __builtin_clz])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ ]], [[
+	int check[(__builtin_clz(1) == (sizeof(int) * 8 - 1)) ? 1 : -1];
+	(void) check;
+]])], [ # then
+    AC_DEFINE([HAVE_BUILTIN_CLZ], [1], [Define to 1 if compiler supports __builtin_clz])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+# __builtin_clzl
+AC_MSG_CHECKING([for __builtin_clzl])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ ]], [[
+	int check[(__builtin_clzl(1) == (sizeof(long) * 8 - 1)) ? 1 : -1];
+	(void) check;
+]])], [ # then
+    AC_DEFINE([HAVE_BUILTIN_CLZL], [1], [Define to 1 if compiler supports __builtin_clzl])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+# __builtin_clzll
+AC_MSG_CHECKING([for __builtin_clzll])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ ]], [[
+	int check[(__builtin_clzll(1) == (sizeof(long long) * 8 - 1)) ? 1 : -1];
+	(void) check;
+]])], [ # then
+    AC_DEFINE([HAVE_BUILTIN_CLZLL], [1], [Define to 1 if compiler supports __builtin_clzll])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+
 # <byteswap.h>
 AC_MSG_CHECKING([for byteswap.h])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
