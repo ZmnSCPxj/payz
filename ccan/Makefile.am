@@ -3,6 +3,9 @@ libccan_la_SOURCES = \
 	ccan/alignof/alignof.h \
 	ccan/build_assert/build_assert.h \
 	ccan/check_type/check_type.h \
+	ccan/container_of/container_of.h \
+	ccan/list/list.c \
+	ccan/list/list.h \
 	ccan/str/str.c \
 	ccan/str/str.h \
 	ccan/str/str_debug.h
@@ -11,6 +14,8 @@ EXTRA_DIST = \
 	ccan/alignof/LICENSE \
 	ccan/build_assert/LICENSE \
 	ccan/check_type/LICENSE \
+	ccan/container_of/LICENSE \
+	ccan/list/LICENSE \
 	ccan/str/LICENSE \
 	licenses/BSD-MIT \
 	licenses/CC0 \
