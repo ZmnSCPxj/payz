@@ -1,9 +1,24 @@
 SUBDIRS = ccan
+noinst_LTLIBRARIES = libpayz.la
 
 bin_PROGRAMS = payz
 
 payz_SOURCES = \
 	main.c
+
+# Sources from lightningd, or stubs of those source files.
+COMMON_SOURCES = \
+	bitcoin/chainparams.h
+
+# Sources for actual payz, which we hope will eventually
+# make their way to lightningd.
+PAY_SOURCES = \
+	plugins/payz/main.c \
+	plugins/payz/main.h
+
+libpayz_la_SOURCES = \
+	$(COMMON_SOURCES) \
+	$(PAY_SOURCES)
 
 ACLOCAL_AMFLAGS = -I m4
 
@@ -15,7 +30,7 @@ MY_INCLUDEDIRS = \
 	-I ccan
 
 AM_CFLAGS = -Wall -Werror $(MY_INCLUDEDIRS)
-LDADD = ccan/libccan.la
+LDADD = libpayz.la ccan/libccan.la
 
 if USE_VALGRIND
 LOG_COMPILER = valgrind

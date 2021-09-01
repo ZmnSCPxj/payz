@@ -1,4 +1,5 @@
 payz
+!plugins/payz
 *.o
 *.la
 *.lo
