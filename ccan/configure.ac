@@ -291,6 +291,36 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
     AC_MSG_RESULT([no])
 ])
 
+# struct timespec
+AC_MSG_CHECKING([for struct timespec in time.h])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+	#include<time.h>
+]], [[
+	struct timespec ts;
+	ts.tv_sec = ts.tv_nsec = 1;
+	(void) ts;
+]])], [ # then
+    AC_DEFINE([HAVE_STRUCT_TIMESPEC], [1], [Define to 1 if <time.h> exists and defines struct timespec.])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+
+# clock_gettime
+AC_MSG_CHECKING([for clock_gettime in time.h])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+	#include<time.h>
+]], [[
+	struct timespec ts;
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+	(void) ts;
+]])], [ # then
+    AC_DEFINE([HAVE_CLOCK_GETTIME], [1], [Define to 1 if <time.h> exists and declares clock_gettime.])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset])

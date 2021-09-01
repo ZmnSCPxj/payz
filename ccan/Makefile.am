@@ -23,6 +23,8 @@ libccan_la_SOURCES = \
 	ccan/tal/tal.c \
 	ccan/tal/tal.h \
 	ccan/tcon/tcon.h \
+	ccan/time/time.c \
+	ccan/time/time.h \
 	ccan/typesafe_cb/typesafe_cb.h
 
 EXTRA_DIST = \
@@ -41,6 +43,7 @@ EXTRA_DIST = \
 	ccan/tal/LICENSE \
 	ccan/tal/str/LICENSE \
 	ccan/tcon/LICENSE \
+	ccan/time/LICENSE \
 	ccan/typesafe_cb/LICENSE \
 	licenses/BSD-MIT \
 	licenses/CC0 \
