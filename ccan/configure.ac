@@ -193,6 +193,21 @@ extern int check(int *, ...) __attribute__((__sentinel__));
     AC_MSG_RESULT([no])
 ])
 
+# __attribute__((__section__))
+AC_MSG_CHECKING([for __attribute__((__section__)) and __start/__stop])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+	static void *__attribute__((__section__("mysec"))) p = &p;
+	static int func() {
+		extern void *__start_mysec[], *__stop_mysec[];
+		return __stop_mysec - __start_mysec;
+	}
+]], [[(void)&func;]])], [ # then
+    AC_DEFINE([HAVE_SECTION_START_STOP], [1], [Define to 1 if compiler supports __attribute__((__section__)) and __start/__stop])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+
 # __builtin_constant_p
 AC_MSG_CHECKING([for __builtin_constant_p])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ ]], [[

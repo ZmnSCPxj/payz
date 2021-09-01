@@ -2,6 +2,8 @@ noinst_LTLIBRARIES = libccan.la
 libccan_la_SOURCES = \
 	ccan/alignof/alignof.h \
 	ccan/array_size/array_size.h \
+	ccan/autodata/autodata.c \
+	ccan/autodata/autodata.h \
 	ccan/bitops/bitops.c \
 	ccan/bitops/bitops.h \
 	ccan/build_assert/build_assert.h \
@@ -58,6 +60,7 @@ libccan_la_SOURCES = \
 EXTRA_DIST = \
 	ccan/alignof/LICENSE \
 	ccan/array_size/LICENSE \
+	ccan/autodata/LICENSE \
 	ccan/bitops/LICENSE \
 	ccan/build_assert/LICENSE \
 	ccan/check_type/LICENSE \
