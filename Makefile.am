@@ -7,7 +7,14 @@ payz_SOURCES = \
 
 ACLOCAL_AMFLAGS = -I m4
 
-AM_CFLAGS = -Wall -Werror
+# We need access to both $(top_srcdir)/ccan (to get 
+# the ccan header-only modules) as well as the
+# pwd ccan (to get the ccan config.h file).
+MY_INCLUDEDIRS = \
+	-I $(srcdir)/ccan \
+	-I ccan
+
+AM_CFLAGS = -Wall -Werror $(MY_INCLUDEDIRS)
 LDADD = ccan/libccan.la
 
 if USE_VALGRIND
