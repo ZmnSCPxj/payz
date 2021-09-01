@@ -8,6 +8,7 @@ libccan_la_SOURCES = \
 	ccan/check_type/check_type.h \
 	ccan/compiler/compiler.h \
 	ccan/container_of/container_of.h \
+	ccan/cppmagic/cppmagic.h \
 	ccan/endian/endian.h \
 	ccan/err/err.c \
 	ccan/err/err.h \
@@ -28,6 +29,8 @@ libccan_la_SOURCES = \
 	ccan/likely/likely.h \
 	ccan/list/list.c \
 	ccan/list/list.h \
+	ccan/mem/mem.c \
+	ccan/mem/mem.h \
 	ccan/membuf/membuf.c \
 	ccan/membuf/membuf.h \
 	ccan/read_write_all/read_write_all.c \
@@ -38,6 +41,7 @@ libccan_la_SOURCES = \
 	ccan/str/str_debug.h \
 	ccan/strmap/strmap.c \
 	ccan/strmap/strmap.h \
+	ccan/structeq/structeq.h \
 	ccan/take/take.c \
 	ccan/take/take.h \
 	ccan/tal/str/str.c \
@@ -59,6 +63,7 @@ EXTRA_DIST = \
 	ccan/check_type/LICENSE \
 	ccan/compiler/LICENSE \
 	ccan/container_of/LICENSE \
+	ccan/cppmagic/LICENSE \
 	ccan/endian/LICENSE \
 	ccan/err/LICENSE \
 	ccan/ilog/LICENSE \
@@ -68,11 +73,13 @@ EXTRA_DIST = \
 	ccan/json_out/LICENSE \
 	ccan/likely/LICENSE \
 	ccan/list/LICENSE \
+	ccan/mem/LICENSE \
 	ccan/membuf/LICENSE \
 	ccan/read_write_all/LICENSE \
 	ccan/short_types/LICENSE \
 	ccan/str/LICENSE \
 	ccan/strmap/LICENSE \
+	ccan/structeq/LICENSE \
 	ccan/take/LICENSE \
 	ccan/tal/LICENSE \
 	ccan/tal/str/LICENSE \
