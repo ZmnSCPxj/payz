@@ -195,6 +195,7 @@ extern int check(int *, ...) __attribute__((__sentinel__));
 AC_MSG_CHECKING([for __builtin_constant_p])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ ]], [[
 	int check[__builtin_constant_p(1) ? 1 : -1];
+	(void) check;
 ]])], [ # then
     AC_DEFINE([HAVE_BUILTIN_CONSTANT_P], [1], [Define to 1 if compiler supports __builtin_constant_p])
     AC_MSG_RESULT([yes])
@@ -206,8 +207,45 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ ]], [[
 AC_MSG_CHECKING([for __builtin_cpu_supports])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ ]], [[
 	int check[__builtin_cpu_supports("mmx") ? 1 : -1];
+	(void) check;
 ]])], [ # then
     AC_DEFINE([HAVE_BUILTIN_CPU_SUPPORTS], [1], [Define to 1 if compiler supports __builtin_cpu_supports])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+
+# __builtin_expect
+AC_MSG_CHECKING([for __builtin_expect])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ ]], [[
+	int check[__builtin_expect(1 == 1, 1) ? 1 : -1];
+	(void) check;
+]])], [ # then
+    AC_DEFINE([HAVE_BUILTIN_EXPECT], [1], [Define to 1 if compiler supports __builtin_expect])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+
+# __builtin_choose_expr
+AC_MSG_CHECKING([for __builtin_choose_expr])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ ]], [[
+	int check[(__builtin_choose_expr(1, 1, 0) && __builtin_choose_expr(0, 0, 1)) ? 1 : -1];
+	(void) check;
+]])], [ # then
+    AC_DEFINE([HAVE_BUILTIN_CHOOSE_EXPR], [1], [Define to 1 if compiler supports __builtin_choose_expr])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+
+# __builtin_types_compatible_p
+AC_MSG_CHECKING([for __builtin_types_compatible_p])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ ]], [[
+	int check[!__builtin_types_compatible_p(char*, int) ? 1 : -1];
+	(void) check;
+]])], [ # then
+    AC_DEFINE([HAVE_BUILTIN_TYPES_COMPATIBLE_P], [1], [Define to 1 if compiler supports __builtin_types_compatible_p])
     AC_MSG_RESULT([yes])
 ], [ # else
     AC_MSG_RESULT([no])
