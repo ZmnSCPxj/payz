@@ -1,3 +1,5 @@
+SUBDIRS = ccan
+
 bin_PROGRAMS = payz
 
 payz_SOURCES = \
@@ -6,6 +8,7 @@ payz_SOURCES = \
 ACLOCAL_AMFLAGS = -I m4
 
 AM_CFLAGS = -Wall -Werror
+LDADD = ccan/libccan.la
 
 if USE_VALGRIND
 LOG_COMPILER = valgrind
