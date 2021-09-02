@@ -35,3 +35,13 @@ void clean_tmpctx(void)
 	while ((p = tal_first(tmpctx)) != NULL)
 		tal_free(p);
 }
+
+void *tal_dup_talarr_(const tal_t *ctx, const tal_t *src TAKES, const char *label)
+{
+	if (!src) {
+		/* Correctly handle TAKES on a NULL `src`.  */
+		(void) taken(src);
+		return NULL;
+	}
+	return tal_dup_(ctx, src, 1, tal_bytelen(src), 0, label);
+}
