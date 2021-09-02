@@ -33,6 +33,13 @@ const u8 *fromwire(const u8 **cursor, size_t *max, void *copy, size_t n)
 		memcpy(copy, p, n);
 	return memcheck(p, n);
 }
+void towire(u8 **pptr, const void *data, size_t len)
+{
+	size_t oldsize = tal_count(*pptr);
+
+	tal_resize(pptr, oldsize + len);
+	memcpy(*pptr + oldsize, memcheck(data, len), len);
+}
 
 int fromwire_peektype(const u8 *cursor)
 {
