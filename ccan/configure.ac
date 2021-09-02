@@ -459,6 +459,21 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[
     AC_MSG_RESULT([no])
 ])
 
+# Unaligned access.
+# Unfortunately there is no portable way to check if the target
+# CPU allows unaligned access.
+# What ccan/tools/configurator does is to actually execute on
+# the target and check if the program crashes or gets the
+# incorrect result in case of unaligned access, but we cannot
+# run on target in a cross-compiling case (not that lightningd
+# itself can be cross-compiled, precisely due to the ccan
+# configurator).
+# Do an AC_DEFINE nevertheless so advanced users can manually
+# modify config.h.
+AS_IF([false], [
+    AC_DEFINE([HAVE_UNALIGNED_ACCESS], [1], [Define to 1 if the target CPU allows fast and correct unaligned access (e.g. X86, X86-64)])
+])
+
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset])
