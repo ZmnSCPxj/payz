@@ -12,7 +12,9 @@ COMMON_SOURCES = \
 	common/type_to_string.c \
 	common/type_to_string.h \
 	common/utils.c \
-	common/utils.h
+	common/utils.h \
+	wire/wire.c \
+	wire/wire.h
 
 # Sources for actual payz, which we hope will eventually
 # make their way to lightningd.
