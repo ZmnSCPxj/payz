@@ -8,7 +8,9 @@ payz_SOURCES = \
 
 # Sources from lightningd, or stubs of those source files.
 COMMON_SOURCES = \
-	bitcoin/chainparams.h
+	bitcoin/chainparams.h \
+	common/utils.c \
+	common/utils.h
 
 # Sources for actual payz, which we hope will eventually
 # make their way to lightningd.
