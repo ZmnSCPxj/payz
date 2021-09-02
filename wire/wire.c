@@ -60,8 +60,44 @@ u64 fromwire_u64(const u8 **cursor, size_t *max)
 		return 0;
 	return be64_to_cpu(ret);
 }
+u16 fromwire_u16(const u8 **cursor, size_t *max)
+{
+	be16 ret;
+
+	if (!fromwire(cursor, max, &ret, sizeof(ret)))
+		return 0;
+	return be16_to_cpu(ret);
+}
+void fromwire_u8_array(const u8 **cursor, size_t *max, u8 *arr, size_t num)
+{
+	fromwire(cursor, max, arr, num);
+}
+u8 *fromwire_tal_arrn(const tal_t *ctx,
+		      const u8 **cursor, size_t *max, size_t num)
+{
+	u8 *arr;
+	if (num == 0)
+		return NULL;
+
+	if (num > *max)
+		return fromwire_fail(cursor, max);
+
+	arr = tal_arr(ctx, u8, num);
+	fromwire_u8_array(cursor, max, arr, num);
+	return arr;
+}
+
 void towire_u64(u8 **pptr, u64 v)
 {
 	be64 l = cpu_to_be64(v);
 	towire(pptr, &l, sizeof(l));
+}
+void towire_u16(u8 **pptr, u16 v)
+{
+	be16 l = cpu_to_be16(v);
+	towire(pptr, &l, sizeof(l));
+}
+void towire_u8_array(u8 **pptr, const u8 *arr, size_t num)
+{
+	towire(pptr, arr, num);
 }

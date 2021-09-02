@@ -19,6 +19,13 @@ void *fromwire_fail(const u8 **cursor, size_t *max);
 int fromwire_peektype(const u8 *cursor);
 
 u64 fromwire_u64(const u8 **cursor, size_t *max);
+u16 fromwire_u16(const u8 **cursor, size_t *max);
 void towire_u64(u8 **pptr, u64 v);
+void towire_u16(u8 **pptr, u16 v);
+
+u8 *fromwire_tal_arrn(const tal_t *ctx,
+		       const u8 **cursor, size_t *max, size_t num);
+void fromwire_u8_array(const u8 **cursor, size_t *max, u8 *arr, size_t num);
+void towire_u8_array(u8 **pptr, const u8 *arr, size_t num);
 
 #endif /* PAYZ_WIRE_WIRE_H */
