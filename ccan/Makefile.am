@@ -59,7 +59,9 @@ libccan_la_SOURCES = \
 	ccan/time/time.h \
 	ccan/timer/timer.c \
 	ccan/timer/timer.h \
-	ccan/typesafe_cb/typesafe_cb.h
+	ccan/typesafe_cb/typesafe_cb.h \
+	ccan/utf8/utf8.c \
+	ccan/utf8/utf8.h
 
 EXTRA_DIST = \
 	ccan/alignof/LICENSE \
@@ -96,6 +98,7 @@ EXTRA_DIST = \
 	ccan/time/LICENSE \
 	ccan/timer/LICENSE \
 	ccan/typesafe_cb/LICENSE \
+	ccan/utf8/LICENSE \
 	licenses/BSD-MIT \
 	licenses/CC0 \
 	licenses/GPL-2 \
