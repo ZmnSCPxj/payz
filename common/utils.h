@@ -40,4 +40,7 @@ void clean_tmpctx(void);
 void *tal_dup_talarr_(const tal_t *ctx, const tal_t *src TAKES,
 		      const char *label);
 
+/* Check for valid UTF-8 */
+bool utf8_check(const void *buf, size_t buflen);
+
 #endif /* PAYZ_COMMON_UTILS_H */
