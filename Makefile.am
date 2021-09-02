@@ -10,6 +10,7 @@ payz_SOURCES = \
 COMMON_SOURCES = \
 	bitcoin/chainparams.h \
 	common/errcode.h \
+	common/overflows.h \
 	common/type_to_string.c \
 	common/type_to_string.h \
 	common/utils.c \
