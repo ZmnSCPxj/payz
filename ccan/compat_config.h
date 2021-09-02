@@ -26,4 +26,10 @@
 #define HAVE_LITTLE_ENDIAN 1
 #endif
 
+/* Use JSMN in "separate mode", i.e. define everything
+ * extern.
+ */
+#define JSMN_HEADER
+#undef JSMN_STATIC
+
 #endif /* !defined(CCAN_COMPAT_CONFIG_H) */

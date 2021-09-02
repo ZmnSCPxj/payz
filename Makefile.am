@@ -17,6 +17,8 @@ COMMON_SOURCES = \
 	common/errcode.h \
 	common/features.c \
 	common/features.h \
+	common/json.c \
+	common/json.h \
 	common/json_stream.c \
 	common/json_stream.h \
 	common/memleak.h \
@@ -26,6 +28,8 @@ COMMON_SOURCES = \
 	common/type_to_string.h \
 	common/utils.c \
 	common/utils.h \
+	external/jsmn/jsmn.c \
+	external/jsmn/jsmn.h \
 	wire/wire.c \
 	wire/wire.h
 
