@@ -17,6 +17,8 @@ COMMON_SOURCES = \
 	common/errcode.h \
 	common/features.c \
 	common/features.h \
+	common/json_stream.c \
+	common/json_stream.h \
 	common/memleak.h \
 	common/overflows.h \
 	common/peer_wire.h \
