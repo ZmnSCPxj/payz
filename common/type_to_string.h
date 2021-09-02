@@ -30,7 +30,7 @@ struct type_to_string {
 	} \
 	static struct type_to_string ttos_##typename = { \
 		#typename, fmt_##typename##_ \
-	} \
+	}; \
 	AUTODATA(type_to_string, &ttos_##typename)
 
 #define REGISTER_TYPE_TO_HEXSTR(typename) \
@@ -40,7 +40,7 @@ struct type_to_string {
 	} \
 	static struct type_to_string ttos_##typename = { \
 		#typename, fmt_##typename##_ \
-	} \
+	}; \
 	AUTODATA(type_to_string, &ttos_##typename)
 
 #define type_to_string(ctx, type, ptr) \
