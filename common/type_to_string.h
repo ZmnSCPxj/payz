@@ -44,7 +44,7 @@ struct type_to_string {
 	AUTODATA(type_to_string, &ttos_##typename)
 
 #define type_to_string(ctx, type, ptr) \
-	type_to_string_((ctx), stringify(type), ptr + check_type(ptr, type))
+	type_to_string_((ctx), stringify(type), ptr + check_type(ptr, type *))
 
 const char *type_to_string_(const tal_t *ctx, const char *typename,
 			    const void *ptr);
