@@ -38,6 +38,8 @@ libccan_la_SOURCES = \
 	ccan/read_write_all/read_write_all.c \
 	ccan/read_write_all/read_write_all.h \
 	ccan/short_types/short_types.h \
+	ccan/str/hex/hex.c \
+	ccan/str/hex/hex.h \
 	ccan/str/str.c \
 	ccan/str/str.h \
 	ccan/str/str_debug.h \
@@ -81,6 +83,7 @@ EXTRA_DIST = \
 	ccan/read_write_all/LICENSE \
 	ccan/short_types/LICENSE \
 	ccan/str/LICENSE \
+	ccan/str/hex/LICENSE \
 	ccan/strmap/LICENSE \
 	ccan/structeq/LICENSE \
 	ccan/take/LICENSE \
