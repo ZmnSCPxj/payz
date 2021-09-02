@@ -12,6 +12,8 @@ COMMON_SOURCES = \
 	bitcoin/chainparams.h \
 	common/amount.c \
 	common/amount.h \
+	common/daemon.c \
+	common/daemon.h \
 	common/errcode.h \
 	common/features.c \
 	common/features.h \
