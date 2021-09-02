@@ -13,7 +13,11 @@ COMMON_SOURCES = \
 	common/amount.c \
 	common/amount.h \
 	common/errcode.h \
+	common/features.c \
+	common/features.h \
+	common/memleak.h \
 	common/overflows.h \
+	common/peer_wire.h \
 	common/type_to_string.c \
 	common/type_to_string.h \
 	common/utils.c \
