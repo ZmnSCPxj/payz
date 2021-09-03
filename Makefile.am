@@ -21,6 +21,7 @@ COMMON_SOURCES = \
 	common/json.h \
 	common/json_stream.c \
 	common/json_stream.h \
+	common/jsonrpc_errors.h \
 	common/memleak.h \
 	common/overflows.h \
 	common/peer_wire.h \
