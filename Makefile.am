@@ -37,6 +37,8 @@ COMMON_SOURCES = \
 # Sources for actual payz, which we hope will eventually
 # make their way to lightningd.
 PAY_SOURCES = \
+	plugins/payz/ecs/ec.c \
+	plugins/payz/ecs/ec.h \
 	plugins/payz/main.c \
 	plugins/payz/main.h
 
