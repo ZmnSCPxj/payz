@@ -25,6 +25,8 @@ COMMON_SOURCES = \
 	common/memleak.h \
 	common/overflows.h \
 	common/peer_wire.h \
+	common/status_levels.c \
+	common/status_levels.h \
 	common/type_to_string.c \
 	common/type_to_string.h \
 	common/utils.c \
