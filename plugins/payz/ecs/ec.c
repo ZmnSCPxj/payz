@@ -173,7 +173,7 @@ void ec_set_component(struct ec *ec,
 		detach = true;
 	}
 
-	if (tok->type == JSMN_PRIMITIVE && buffer[tok->start] == 'n')
+	if (json_tok_is_null(buffer, tok))
 		detach = true;
 
 	entityrow = uintmap_get(&ec->entity_map, entity);
@@ -226,7 +226,6 @@ static struct ec_entityrow *ec_entityrow_new(const tal_t *ctx)
 	return entityrow;
 }
 
-static const jsmntok_t *json_tok_end(const jsmntok_t *tok);
 static struct ec_cell *ec_cell_new(const tal_t *ctx,
 				   const char *buffer,
 				   const jsmntok_t *tok)
@@ -237,7 +236,7 @@ static struct ec_cell *ec_cell_new(const tal_t *ctx,
 	const char *to_copy = json_tok_full(buffer, tok);
 	int len = json_tok_full_len(tok);
 	/* Determine token array size to copy.  */
-	const jsmntok_t *tok_end = json_tok_end(tok);
+	const jsmntok_t *tok_end = json_next(tok);
 
 	/* The offset to apply to all copied tokens.  */
 	int offset = to_copy - buffer;
@@ -257,14 +256,6 @@ static struct ec_cell *ec_cell_new(const tal_t *ctx,
 	}
 
 	return cell;
-}
-static const jsmntok_t *json_tok_end(const jsmntok_t *tok)
-{
-	int size = tok->size;
-	++tok;
-	for (; size != 0; --size)
-		tok = json_tok_end(tok);
-	return tok;
 }
 
 void ec_set_component_datum(struct ec *ec,
