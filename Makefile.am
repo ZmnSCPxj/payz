@@ -69,6 +69,8 @@ COMMON_SOURCES = \
 	common/pseudorand.c \
 	common/pseudorand.h \
 	common/random_select.h \
+	common/route.c \
+	common/route.h \
 	common/status_levels.c \
 	common/status_levels.h \
 	common/type_to_string.c \
