@@ -22,6 +22,9 @@ libccan_la_SOURCES = \
 	ccan/endian/endian.h \
 	ccan/err/err.c \
 	ccan/err/err.h \
+	ccan/htable/htable.c \
+	ccan/htable/htable.h \
+	ccan/htable/htable_type.h \
 	ccan/ilog/ilog.c \
 	ccan/ilog/ilog.h \
 	ccan/intmap/intmap.c \
@@ -91,6 +94,7 @@ EXTRA_DIST = \
 	ccan/crypto/siphash24/LICENSE \
 	ccan/endian/LICENSE \
 	ccan/err/LICENSE \
+	ccan/htable/LICENSE \
 	ccan/ilog/LICENSE \
 	ccan/intmap/LICENSE \
 	ccan/io/LICENSE \
