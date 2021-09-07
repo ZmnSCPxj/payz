@@ -45,7 +45,6 @@ COMMON_SOURCES = \
 	common/node_id.c \
 	common/node_id.h \
 	common/overflows.h \
-	common/peer_wire.h \
 	common/pseudorand.h \
 	common/status_levels.c \
 	common/status_levels.h \
@@ -57,6 +56,7 @@ COMMON_SOURCES = \
 	external/jsmn/jsmn.h \
 	sodium/randombytes.h \
 	wally_psbt.h \
+	wire/peer_wire.h \
 	wire/wire.c \
 	wire/wire.h
 
