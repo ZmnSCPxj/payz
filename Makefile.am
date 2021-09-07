@@ -84,6 +84,8 @@ COMMON_SOURCES = \
 	external/gheap/gheap.h \
 	external/jsmn/jsmn.c \
 	external/jsmn/jsmn.h \
+	plugins/libplugin.c \
+	plugins/libplugin.h \
 	sodium/randombytes.h \
 	wally_psbt.h \
 	wire/peer_wire.h \

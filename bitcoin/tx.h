@@ -1,6 +1,7 @@
 #ifndef PAYZ_BITCOIN_TX_H
 #define PAYZ_BITCOIN_TX_H
 #include"config.h"
+#include<bitcoin/privkey.h>
 #include<bitcoin/shadouble.h>
 #include<bitcoin/signature.h>
 #include<ccan/tal/tal.h>

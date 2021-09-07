@@ -1,6 +1,7 @@
 #ifndef PAYZ_COMMON_UTILS_H
 #define PAYZ_COMMON_UTILS_H
 #include"config.h"
+#include<ccan/mem/mem.h>
 #include<ccan/tal/tal.h>
 
 /* This shim exists to remove dependencies on libwally and
@@ -47,5 +48,14 @@ bool utf8_check(const void *buf, size_t buflen);
 
 #define SECP256K1_TAG_PUBKEY_EVEN 0x02
 #define SECP256K1_TAG_PUBKEY_ODD 0x03
+
+/**
+ * Remove an element from an array
+ *
+ * This will shift the elements past the removed element, changing
+ * their position in memory, so only use this for arrays of pointers.
+ */
+#define tal_arr_remove(p, n) tal_arr_remove_((p), sizeof(**p), (n))
+void tal_arr_remove_(void *p, size_t elemsize, size_t n);
 
 #endif /* PAYZ_COMMON_UTILS_H */

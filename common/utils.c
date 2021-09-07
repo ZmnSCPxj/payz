@@ -1,4 +1,5 @@
 #include"utils.h"
+#include<assert.h>
 #include<ccan/str/hex/hex.h>
 #include<ccan/short_types/short_types.h>
 #include<ccan/utf8/utf8.h>
@@ -48,6 +49,19 @@ void *tal_dup_talarr_(const tal_t *ctx, const tal_t *src TAKES, const char *labe
 	}
 	return tal_dup_(ctx, src, 1, tal_bytelen(src), 0, label);
 }
+
+void tal_arr_remove_(void *p, size_t elemsize, size_t n)
+{
+    // p is a pointer-to-pointer for tal_resize.
+    char *objp = *(char **)p;
+    size_t len = tal_bytelen(objp);
+    assert(len % elemsize == 0);
+    assert((n + 1) * elemsize <= len);
+    memmove(objp + elemsize * n, objp + elemsize * (n+1),
+	    len - (elemsize * (n+1)));
+    tal_resize((char **)p, len - elemsize);
+}
+
 
 /* Check for valid UTF-8 */
 bool utf8_check(const void *vbuf, size_t buflen)

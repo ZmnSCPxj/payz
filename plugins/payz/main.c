@@ -1,5 +1,6 @@
 #include<bitcoin/chainparams.h>
 #include<ccan/tal/tal.h>
+#include<plugins/libplugin.h>
 #include<plugins/payz/main.h>
 
 int payz_main(int argc, char **argv,
