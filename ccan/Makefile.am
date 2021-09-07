@@ -13,6 +13,8 @@ libccan_la_SOURCES = \
 	ccan/compiler/compiler.h \
 	ccan/container_of/container_of.h \
 	ccan/cppmagic/cppmagic.h \
+	ccan/crc32c/crc32c.c \
+	ccan/crc32c/crc32c.h \
 	ccan/crypto/sha256/sha256.c \
 	ccan/crypto/sha256/sha256.h \
 	ccan/crypto/siphash24/siphash24.c \
@@ -84,6 +86,7 @@ EXTRA_DIST = \
 	ccan/compiler/LICENSE \
 	ccan/container_of/LICENSE \
 	ccan/cppmagic/LICENSE \
+	ccan/crc32c/LICENSE \
 	ccan/crypto/sha256/LICENSE \
 	ccan/crypto/siphash24/LICENSE \
 	ccan/endian/LICENSE \
