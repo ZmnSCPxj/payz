@@ -2,6 +2,8 @@ noinst_LTLIBRARIES = libccan.la
 libccan_la_SOURCES = \
 	ccan/alignof/alignof.h \
 	ccan/array_size/array_size.h \
+	ccan/asort/asort.c \
+	ccan/asort/asort.h \
 	ccan/autodata/autodata.c \
 	ccan/autodata/autodata.h \
 	ccan/bitops/bitops.c \
@@ -37,6 +39,8 @@ libccan_la_SOURCES = \
 	ccan/mem/mem.h \
 	ccan/membuf/membuf.c \
 	ccan/membuf/membuf.h \
+	ccan/order/order.c \
+	ccan/order/order.h \
 	ccan/ptrint/ptrint.h \
 	ccan/read_write_all/read_write_all.c \
 	ccan/read_write_all/read_write_all.h \
@@ -70,6 +74,7 @@ libccan_la_SOURCES = \
 EXTRA_DIST = \
 	ccan/alignof/LICENSE \
 	ccan/array_size/LICENSE \
+	ccan/asort/LICENSE \
 	ccan/autodata/LICENSE \
 	ccan/bitops/LICENSE \
 	ccan/build_assert/LICENSE \
@@ -89,6 +94,7 @@ EXTRA_DIST = \
 	ccan/list/LICENSE \
 	ccan/mem/LICENSE \
 	ccan/membuf/LICENSE \
+	ccan/order/LICENSE \
 	ccan/ptrint/LICENSE \
 	ccan/read_write_all/LICENSE \
 	ccan/short_types/LICENSE \
