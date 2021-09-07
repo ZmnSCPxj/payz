@@ -28,6 +28,8 @@ COMMON_SOURCES = \
 	common/amount.h \
 	common/base32.c \
 	common/base32.h \
+	common/bigsize.c \
+	common/bigsize.h \
 	common/channel_id.c \
 	common/channel_id.h \
 	common/configdir.h \
