@@ -36,6 +36,8 @@ COMMON_SOURCES = \
 	common/errcode.h \
 	common/features.c \
 	common/features.h \
+	common/fp16.c \
+	common/fp16.h \
 	common/gossip_constants.h \
 	common/json.c \
 	common/json.h \
