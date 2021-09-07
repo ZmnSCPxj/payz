@@ -40,6 +40,8 @@ COMMON_SOURCES = \
 	common/json.c \
 	common/json.h \
 	common/json_command.h \
+	common/json_helpers.c \
+	common/json_helpers.h \
 	common/json_stream.c \
 	common/json_stream.h \
 	common/jsonrpc_errors.h \

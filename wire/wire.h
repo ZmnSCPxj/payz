@@ -35,4 +35,15 @@ u8 *fromwire_tal_arrn(const tal_t *ctx,
 void fromwire_u8_array(const u8 **cursor, size_t *max, u8 *arr, size_t num);
 void towire_u8_array(u8 **pptr, const u8 *arr, size_t num);
 
+/* This is from generated code, but the payz does not actually
+ * use lease rates.
+ */
+struct lease_rates {
+	u16 funding_weight;
+	u16 lease_fee_basis;
+	u16 channel_fee_max_proportional_thousandths;
+	u32 lease_fee_base_sat;
+	u32 channel_fee_max_base_msat;
+};
+
 #endif /* PAYZ_WIRE_WIRE_H */
