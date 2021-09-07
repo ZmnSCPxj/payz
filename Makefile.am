@@ -55,6 +55,7 @@ COMMON_SOURCES = \
 	common/param.c \
 	common/param.h \
 	common/pseudorand.h \
+	common/random_select.h \
 	common/status_levels.c \
 	common/status_levels.h \
 	common/type_to_string.c \
