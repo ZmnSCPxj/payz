@@ -68,11 +68,15 @@ COMMON_SOURCES = \
 	common/utils.h \
 	common/wireaddr.c \
 	common/wireaddr.h \
+	gossipd/gossip_store_wiregen.c \
+	gossipd/gossip_store_wiregen.h \
 	external/jsmn/jsmn.c \
 	external/jsmn/jsmn.h \
 	sodium/randombytes.h \
 	wally_psbt.h \
 	wire/peer_wire.h \
+	wire/tlvstream.c \
+	wire/tlvstream.h \
 	wire/wire.c \
 	wire/wire.h
 
