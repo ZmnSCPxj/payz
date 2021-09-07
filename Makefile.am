@@ -10,6 +10,8 @@ payz_SOURCES = \
 COMMON_SOURCES = \
 	bitcoin/chainparams.c \
 	bitcoin/chainparams.h \
+	bitcoin/short_channel_id.c \
+	bitcoin/short_channel_id.h \
 	common/amount.c \
 	common/amount.h \
 	common/daemon.c \
