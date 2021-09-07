@@ -26,6 +26,18 @@
 #define HAVE_LITTLE_ENDIAN 1
 #endif
 
+/* AX_CHECK_ALIGNED_ACCESS_REQUIRED defines
+ * HAVE_ALIGNED_ACCESS_REQUIRED, and also has the
+ * opposite polarity.
+ * Arguably the AX_* version has a risky polarity, since
+ * autoheader generates HAVE_ALIGNED_ACCESS_REQUIRED
+ * unset, which is the *unsafe* setting!
+ * Sigh.
+ */
+#if !HAVE_ALIGNED_ACCESS_REQUIRED
+#define HAVE_UNALIGNED_ACCESS 1
+#endif
+
 /* Use JSMN in "separate mode", i.e. define everything
  * extern.
  */
