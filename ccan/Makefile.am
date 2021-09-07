@@ -34,6 +34,10 @@ libccan_la_SOURCES = \
 	ccan/io/io.h \
 	ccan/io/io_plan.h \
 	ccan/io/poll.c \
+	ccan/isaac/isaac.c \
+	ccan/isaac/isaac.h \
+	ccan/isaac/isaac64.c \
+	ccan/isaac/isaac64.h \
 	ccan/json_escape/json_escape.c \
 	ccan/json_escape/json_escape.h \
 	ccan/json_out/json_out.c \
@@ -98,6 +102,7 @@ EXTRA_DIST = \
 	ccan/ilog/LICENSE \
 	ccan/intmap/LICENSE \
 	ccan/io/LICENSE \
+	ccan/isaac/LICENSE \
 	ccan/json_escape/LICENSE \
 	ccan/json_out/LICENSE \
 	ccan/likely/LICENSE \
