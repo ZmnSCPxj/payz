@@ -16,6 +16,7 @@ COMMON_SOURCES = \
 	bitcoin/privkey.h \
 	bitcoin/psbt.c \
 	bitcoin/psbt.h \
+	bitcoin/pubkey.h \
 	bitcoin/short_channel_id.c \
 	bitcoin/short_channel_id.h \
 	common/amount.c \

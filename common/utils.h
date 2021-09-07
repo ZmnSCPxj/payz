@@ -43,4 +43,6 @@ void *tal_dup_talarr_(const tal_t *ctx, const tal_t *src TAKES,
 /* Check for valid UTF-8 */
 bool utf8_check(const void *buf, size_t buflen);
 
+#define secp256k1_ctx NULL
+
 #endif /* PAYZ_COMMON_UTILS_H */
