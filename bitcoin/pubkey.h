@@ -16,5 +16,6 @@ struct pubkey { };
 #define pubkey_from_hexstr(der, derlen, out) false
 #define pubkey_to_der(a, in) memset((void *)(a), 0, PUBKEY_CMPR_LEN)
 #define secp256k1_xonly_pubkey_serialize(ctx, a, in)  memset((void *)(a), 0, 32)
+#define pubkey_idx(a, b) 0
 
 #endif /* PAYZ_BITCOIN_PUBKEY_H */
