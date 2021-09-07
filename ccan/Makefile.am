@@ -9,6 +9,7 @@ libccan_la_SOURCES = \
 	ccan/bitops/bitops.c \
 	ccan/bitops/bitops.h \
 	ccan/build_assert/build_assert.h \
+	ccan/cast/cast.h \
 	ccan/check_type/check_type.h \
 	ccan/compiler/compiler.h \
 	ccan/container_of/container_of.h \
@@ -89,6 +90,7 @@ EXTRA_DIST = \
 	ccan/autodata/LICENSE \
 	ccan/bitops/LICENSE \
 	ccan/build_assert/LICENSE \
+	ccan/cast/LICENSE \
 	ccan/check_type/LICENSE \
 	ccan/compiler/LICENSE \
 	ccan/container_of/LICENSE \

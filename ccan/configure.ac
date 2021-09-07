@@ -470,6 +470,18 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[
     AC_MSG_RESULT([no])
 ])
 
+# Compound literals.
+AC_MSG_CHECKING([for compound literals])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ ]], [[
+	int *foo = (int[]) {1, 2, 3, 4};
+	(void) foo;
+]])], [ # then
+    AC_DEFINE([HAVE_COMPOUND_LITERALS], [1], [Define to 1 compound literals like "{1, 2, 3, 4}" are supported.])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+
 # Unaligned access.
 # This will force aligned access in a cross-compilation
 # situation.
