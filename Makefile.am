@@ -24,6 +24,8 @@ COMMON_SOURCES = \
 	bitcoin/tx.h \
 	common/amount.c \
 	common/amount.h \
+	common/base32.c \
+	common/base32.h \
 	common/channel_id.c \
 	common/channel_id.h \
 	common/daemon.c \
