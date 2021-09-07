@@ -182,6 +182,17 @@ extern int check(int *) __attribute__((__nonnull__));
     AC_MSG_RESULT([no])
 ])
 
+# __attribute__((__returns_nonnull__))
+AC_MSG_CHECKING([for __attribute__((__returns_nonnull__))])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+extern int *check(int *) __attribute__((__returns_nonnull__));
+]], [[ ]])], [ # then
+    AC_DEFINE([HAVE_ATTRIBUTE_RETURNS_NONNULL], [1], [Define to 1 if compiler supports __attribute__((__returns_nonnull__))])
+    AC_MSG_RESULT([yes])
+], [ # else
+    AC_MSG_RESULT([no])
+])
+
 # __attribute__((__sentinel__))
 AC_MSG_CHECKING([for __attribute__((__sentinel__))])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
