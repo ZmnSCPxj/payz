@@ -55,6 +55,7 @@ COMMON_SOURCES = \
 	common/utils.h \
 	external/jsmn/jsmn.c \
 	external/jsmn/jsmn.h \
+	sodium/randombytes.h \
 	wally_psbt.h \
 	wire/wire.c \
 	wire/wire.h
