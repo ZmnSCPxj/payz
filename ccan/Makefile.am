@@ -64,7 +64,8 @@ libccan_la_SOURCES = \
 	ccan/timer/timer.h \
 	ccan/typesafe_cb/typesafe_cb.h \
 	ccan/utf8/utf8.c \
-	ccan/utf8/utf8.h
+	ccan/utf8/utf8.h \
+	compat_config.h
 
 EXTRA_DIST = \
 	ccan/alignof/LICENSE \
