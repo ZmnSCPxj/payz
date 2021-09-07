@@ -1,6 +1,7 @@
 #ifndef PAYZ_WIRE_WIRE_H
 #define PAYZ_WIRE_WIRE_H
 #include"config.h"
+#include<ccan/crypto/sha256/sha256.h>
 #include<ccan/short_types/short_types.h>
 #include<ccan/tal/tal.h>
 #include<inttypes.h>
@@ -21,9 +22,11 @@ int fromwire_peektype(const u8 *cursor);
 u64 fromwire_u64(const u8 **cursor, size_t *max);
 u16 fromwire_u16(const u8 **cursor, size_t *max);
 bool fromwire_bool(const u8 **cursor, size_t *max);
+void fromwire_sha256(const u8 **cursor, size_t *max, struct sha256 *sha256);
 void towire_u64(u8 **pptr, u64 v);
 void towire_u16(u8 **pptr, u16 v);
 void towire_bool(u8 **pptr, bool v);
+void towire_sha256(u8 **pptr, const struct sha256 *sha256);
 
 u8 *fromwire_tal_arrn(const tal_t *ctx,
 		       const u8 **cursor, size_t *max, size_t num);

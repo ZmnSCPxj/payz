@@ -78,6 +78,10 @@ bool fromwire_bool(const u8 **cursor, size_t *max)
 		fromwire_fail(cursor, max);
 	return ret;
 }
+void fromwire_sha256(const u8 **cursor, size_t *max, struct sha256 *sha256)
+{
+        fromwire(cursor, max, sha256, sizeof(*sha256));
+}
 void fromwire_u8_array(const u8 **cursor, size_t *max, u8 *arr, size_t num)
 {
 	fromwire(cursor, max, arr, num);
@@ -111,6 +115,10 @@ void towire_bool(u8 **pptr, bool v)
 {
 	u8 val = v;
 	towire(pptr, &val, sizeof(val));
+}
+void towire_sha256(u8 **pptr, const struct sha256 *sha256)
+{
+        towire(pptr, sha256, sizeof(*sha256));
 }
 void towire_u8_array(u8 **pptr, const u8 *arr, size_t num)
 {
