@@ -14,6 +14,8 @@ COMMON_SOURCES = \
 	bitcoin/preimage.h \
 	bitcoin/privkey.c \
 	bitcoin/privkey.h \
+	bitcoin/psbt.c \
+	bitcoin/psbt.h \
 	bitcoin/short_channel_id.c \
 	bitcoin/short_channel_id.h \
 	common/amount.c \
@@ -41,6 +43,7 @@ COMMON_SOURCES = \
 	common/utils.h \
 	external/jsmn/jsmn.c \
 	external/jsmn/jsmn.h \
+	wally_psbt.h \
 	wire/wire.c \
 	wire/wire.h
 
