@@ -2,6 +2,7 @@
 #define PAYZ_BITCOIN_TX_H
 #include"config.h"
 #include<bitcoin/shadouble.h>
+#include<bitcoin/signature.h>
 #include<ccan/tal/tal.h>
 
 /* Shim to get common/channel_id.c and common/json_helpers.c

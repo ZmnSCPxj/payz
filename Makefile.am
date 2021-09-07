@@ -19,6 +19,7 @@ COMMON_SOURCES = \
 	bitcoin/pubkey.h \
 	bitcoin/shadouble.c \
 	bitcoin/shadouble.h \
+	bitcoin/signature.h \
 	bitcoin/short_channel_id.c \
 	bitcoin/short_channel_id.h \
 	bitcoin/tx.c \
