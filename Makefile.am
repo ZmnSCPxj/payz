@@ -21,6 +21,7 @@ COMMON_SOURCES = \
 	bitcoin/shadouble.h \
 	bitcoin/short_channel_id.c \
 	bitcoin/short_channel_id.h \
+	bitcoin/tx.c \
 	bitcoin/tx.h \
 	common/amount.c \
 	common/amount.h \
