@@ -45,6 +45,7 @@ COMMON_SOURCES = \
 	common/json_stream.c \
 	common/json_stream.h \
 	common/jsonrpc_errors.h \
+	common/lease_rates.h \
 	common/memleak.h \
 	common/node_id.c \
 	common/node_id.h \
