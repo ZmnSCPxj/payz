@@ -35,6 +35,8 @@ COMMON_SOURCES = \
 	common/configdir.h \
 	common/daemon.c \
 	common/daemon.h \
+	common/dijkstra.c \
+	common/dijkstra.h \
 	common/errcode.h \
 	common/features.c \
 	common/features.h \
@@ -77,6 +79,7 @@ COMMON_SOURCES = \
 	common/wireaddr.h \
 	gossipd/gossip_store_wiregen.c \
 	gossipd/gossip_store_wiregen.h \
+	external/gheap/gheap.h \
 	external/jsmn/jsmn.c \
 	external/jsmn/jsmn.h \
 	sodium/randombytes.h \
@@ -86,6 +89,10 @@ COMMON_SOURCES = \
 	wire/tlvstream.h \
 	wire/wire.c \
 	wire/wire.h
+
+EXTRA_DIST = \
+	external/gheap/LICENSE \
+	external/gheap/README
 
 # Sources for actual payz, which we hope will eventually
 # make their way to lightningd.
@@ -113,7 +120,8 @@ ACLOCAL_AMFLAGS = -I m4
 MY_INCLUDEDIRS = \
 	-I $(srcdir)/ccan \
 	-I ccan \
-	-I $(srcdir)/external/basicsecure
+	-I $(srcdir)/external/basicsecure \
+	-I $(srcdir)/external/gheap
 
 AM_CFLAGS = -Wall -Werror $(MY_INCLUDEDIRS)
 LDADD = libpayz.la
