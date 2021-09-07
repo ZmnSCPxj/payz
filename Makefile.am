@@ -41,6 +41,8 @@ COMMON_SOURCES = \
 PAY_SOURCES = \
 	plugins/payz/ecs/ec.c \
 	plugins/payz/ecs/ec.h \
+	plugins/payz/ecs/ecsys.c \
+	plugins/payz/ecs/ecsys.h \
 	plugins/payz/main.c \
 	plugins/payz/main.h
 
