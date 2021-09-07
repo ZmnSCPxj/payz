@@ -44,12 +44,16 @@ COMMON_SOURCES = \
 	common/json_helpers.h \
 	common/json_stream.c \
 	common/json_stream.h \
+	common/json_tok.c \
+	common/json_tok.h \
 	common/jsonrpc_errors.h \
 	common/lease_rates.h \
 	common/memleak.h \
 	common/node_id.c \
 	common/node_id.h \
 	common/overflows.h \
+	common/param.c \
+	common/param.h \
 	common/pseudorand.h \
 	common/status_levels.c \
 	common/status_levels.h \
