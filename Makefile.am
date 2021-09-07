@@ -52,6 +52,8 @@ COMMON_SOURCES = \
 	common/type_to_string.h \
 	common/utils.c \
 	common/utils.h \
+	common/wireaddr.c \
+	common/wireaddr.h \
 	external/jsmn/jsmn.c \
 	external/jsmn/jsmn.h \
 	sodium/randombytes.h \

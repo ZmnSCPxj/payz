@@ -21,10 +21,12 @@ int fromwire_peektype(const u8 *cursor);
 
 u64 fromwire_u64(const u8 **cursor, size_t *max);
 u16 fromwire_u16(const u8 **cursor, size_t *max);
+u8 fromwire_u8(const u8 **cursor, size_t *max);
 bool fromwire_bool(const u8 **cursor, size_t *max);
 void fromwire_sha256(const u8 **cursor, size_t *max, struct sha256 *sha256);
 void towire_u64(u8 **pptr, u64 v);
 void towire_u16(u8 **pptr, u16 v);
+void towire_u8(u8 **pptr, u8 v);
 void towire_bool(u8 **pptr, bool v);
 void towire_sha256(u8 **pptr, const struct sha256 *sha256);
 
