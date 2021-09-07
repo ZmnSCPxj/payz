@@ -45,6 +45,8 @@ COMMON_SOURCES = \
 	common/gossip_rcvd_filter.h \
 	common/gossip_store.c \
 	common/gossip_store.h \
+	common/gossmap.c \
+	common/gossmap.h \
 	common/json.c \
 	common/json.h \
 	common/json_command.h \

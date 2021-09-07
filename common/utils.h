@@ -45,4 +45,7 @@ bool utf8_check(const void *buf, size_t buflen);
 
 #define secp256k1_ctx NULL
 
+#define SECP256K1_TAG_PUBKEY_EVEN 0x02
+#define SECP256K1_TAG_PUBKEY_ODD 0x03
+
 #endif /* PAYZ_COMMON_UTILS_H */
