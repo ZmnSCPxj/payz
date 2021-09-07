@@ -26,7 +26,9 @@ AM_CONDITIONAL([USE_VALGRIND], [test x"$enable_valgrind" = xyes])
 
 AC_CONFIG_FILES([Makefile
                  ccan/Makefile
+                 external/basicsecure/Makefile
                 ])
 AC_CONFIG_SUBDIRS([ccan
+                   external/basicsecure
                   ])
 AC_OUTPUT

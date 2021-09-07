@@ -1,4 +1,4 @@
-SUBDIRS = ccan
+SUBDIRS = ccan external/basicsecure
 noinst_LTLIBRARIES = libpayz.la
 
 bin_PROGRAMS = payz
@@ -94,6 +94,10 @@ libpayz_la_SOURCES = \
 	$(COMMON_SOURCES) \
 	$(PAY_SOURCES)
 
+libpayz_la_LIBADD = \
+	ccan/libccan.la \
+	external/basicsecure/libbasicsecure.la
+
 ACLOCAL_AMFLAGS = -I m4
 
 # We need access to both $(top_srcdir)/ccan (to get 
@@ -101,10 +105,11 @@ ACLOCAL_AMFLAGS = -I m4
 # pwd ccan (to get the ccan config.h file).
 MY_INCLUDEDIRS = \
 	-I $(srcdir)/ccan \
-	-I ccan
+	-I ccan \
+	-I $(srcdir)/external/basicsecure
 
 AM_CFLAGS = -Wall -Werror $(MY_INCLUDEDIRS)
-LDADD = libpayz.la ccan/libccan.la
+LDADD = libpayz.la
 
 if USE_VALGRIND
 LOG_COMPILER = valgrind
