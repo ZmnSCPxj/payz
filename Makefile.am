@@ -58,6 +58,7 @@ COMMON_SOURCES = \
 	common/overflows.h \
 	common/param.c \
 	common/param.h \
+	common/pseudorand.c \
 	common/pseudorand.h \
 	common/random_select.h \
 	common/status_levels.c \

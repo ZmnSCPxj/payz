@@ -1,14 +1,27 @@
-#ifndef PAYZ_COMMON_PSEUDORAND_H
-#define PAYZ_COMMON_PSEUDORAND_H
-#include"config.h"
-#include<stdint.h>
+#ifndef LIGHTNING_COMMON_PSEUDORAND_H
+#define LIGHTNING_COMMON_PSEUDORAND_H
+#include "config.h"
+#include <stdint.h>
 
-/* Shim to get common/channel_id.c and common/route.c
- * compiling.
- * The only thing that needs the pseudorand functions is
- * temporary_channel_id, which a pay algorithm has no
- * need of.
+/**
+ * pseudorand - pseudo (guessable!) random number between 0 and max-1.
  */
-#define pseudorand(x) ((uint64_t) 0)
+uint64_t pseudorand(uint64_t max);
 
-#endif /* PAYZ_COMMON_PSEUDORAND_H */
+/**
+ * pseudorand - pseudo (guessable!) random number between 0 and UINT64_MAX.
+ */
+uint64_t pseudorand_u64(void);
+
+/**
+ * pseudorand - pseudo (guessable!) random number between 0 (inclusive) and 1
+ * (exclusive).
+ */
+double pseudorand_double(void);
+
+/**
+ * Get the siphash seed for hash tables.
+ */
+const struct siphash_seed *siphash_seed(void);
+
+#endif /* LIGHTNING_COMMON_PSEUDORAND_H */
