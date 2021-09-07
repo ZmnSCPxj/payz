@@ -68,6 +68,16 @@ u16 fromwire_u16(const u8 **cursor, size_t *max)
 		return 0;
 	return be16_to_cpu(ret);
 }
+bool fromwire_bool(const u8 **cursor, size_t *max)
+{
+	u8 ret;
+
+	if (!fromwire(cursor, max, &ret, sizeof(ret)))
+		return false;
+	if (ret != 0 && ret != 1)
+		fromwire_fail(cursor, max);
+	return ret;
+}
 void fromwire_u8_array(const u8 **cursor, size_t *max, u8 *arr, size_t num)
 {
 	fromwire(cursor, max, arr, num);
@@ -96,6 +106,11 @@ void towire_u16(u8 **pptr, u16 v)
 {
 	be16 l = cpu_to_be16(v);
 	towire(pptr, &l, sizeof(l));
+}
+void towire_bool(u8 **pptr, bool v)
+{
+	u8 val = v;
+	towire(pptr, &val, sizeof(val));
 }
 void towire_u8_array(u8 **pptr, const u8 *arr, size_t num)
 {
