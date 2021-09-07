@@ -19,6 +19,7 @@ COMMON_SOURCES = \
 	common/features.h \
 	common/json.c \
 	common/json.h \
+	common/json_command.h \
 	common/json_stream.c \
 	common/json_stream.h \
 	common/jsonrpc_errors.h \
