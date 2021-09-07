@@ -39,6 +39,8 @@ COMMON_SOURCES = \
 	common/json_stream.h \
 	common/jsonrpc_errors.h \
 	common/memleak.h \
+	common/node_id.c \
+	common/node_id.h \
 	common/overflows.h \
 	common/peer_wire.h \
 	common/pseudorand.h \
