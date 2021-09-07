@@ -41,6 +41,8 @@ COMMON_SOURCES = \
 	common/fp16.c \
 	common/fp16.h \
 	common/gossip_constants.h \
+	common/gossip_rcvd_filter.c \
+	common/gossip_rcvd_filter.h \
 	common/json.c \
 	common/json.h \
 	common/json_command.h \

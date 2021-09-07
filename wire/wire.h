@@ -48,4 +48,9 @@ struct lease_rates {
 	u32 channel_fee_max_base_msat;
 };
 
+/* Some choice peer_wire items.  */
+#define WIRE_CHANNEL_ANNOUNCEMENT 256
+#define WIRE_NODE_ANNOUNCEMENT 257
+#define WIRE_CHANNEL_UPDATE 258
+
 #endif /* PAYZ_WIRE_WIRE_H */
