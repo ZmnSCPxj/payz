@@ -37,6 +37,7 @@ libccan_la_SOURCES = \
 	ccan/mem/mem.h \
 	ccan/membuf/membuf.c \
 	ccan/membuf/membuf.h \
+	ccan/ptrint/ptrint.h \
 	ccan/read_write_all/read_write_all.c \
 	ccan/read_write_all/read_write_all.h \
 	ccan/short_types/short_types.h \
@@ -87,6 +88,7 @@ EXTRA_DIST = \
 	ccan/list/LICENSE \
 	ccan/mem/LICENSE \
 	ccan/membuf/LICENSE \
+	ccan/ptrint/LICENSE \
 	ccan/read_write_all/LICENSE \
 	ccan/short_types/LICENSE \
 	ccan/str/LICENSE \
