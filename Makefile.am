@@ -28,6 +28,7 @@ COMMON_SOURCES = \
 	common/base32.h \
 	common/channel_id.c \
 	common/channel_id.h \
+	common/configdir.h \
 	common/daemon.c \
 	common/daemon.h \
 	common/errcode.h \
