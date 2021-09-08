@@ -17,6 +17,9 @@
 
 struct command;
 
+struct command_result *param_array(struct command *cmd, const char *name,
+				   const char *buffer, const jsmntok_t *tok,
+				   const jsmntok_t **arr);
 struct command_result *param_string(struct command *cmd, const char *name,
 				    const char * buffer, const jsmntok_t *tok,
 				    const char **str);
