@@ -258,13 +258,23 @@ static struct ec_cell *ec_cell_new(const tal_t *ctx,
 	return cell;
 }
 
+void ec_set_component_datuml(struct ec *ec,
+			     u32 entity,
+			     const char *component,
+			     const char *value,
+			     size_t len)
+{
+	ec_set_component(ec, entity, component, value,
+			 json_parse_simple(tmpctx, value, len));
+}
+
 void ec_set_component_datum(struct ec *ec,
 			    u32 entity,
 			    const char *component,
 			    const char *valuez)
 {
-	ec_set_component(ec, entity, component, valuez,
-			 json_parse_simple(tmpctx, valuez, strlen(valuez)));
+	ec_set_component_datuml(ec, entity, component, valuez,
+				strlen(valuez));
 }
 
 /*-----------------------------------------------------------------------------

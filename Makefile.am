@@ -103,6 +103,8 @@ EXTRA_DIST = \
 PAY_SOURCES = \
 	plugins/payz/ecs/ec.c \
 	plugins/payz/ecs/ec.h \
+	plugins/payz/ecs/ecs.c \
+	plugins/payz/ecs/ecs.h \
 	plugins/payz/ecs/ecsys.c \
 	plugins/payz/ecs/ecsys.h \
 	plugins/payz/main.c \

@@ -5,6 +5,7 @@
 #include<ccan/tal/tal.h>
 #include<external/jsmn/jsmn.h>
 #include<stdbool.h>
+#include<stddef.h>
 #include<stdlib.h>
 
 /** struct ec
@@ -32,6 +33,7 @@ struct ec *ec_new(const tal_t *ctx);
  *
  * @return - An entity ID that no previous ec_newentity on
  * this instance has returned.
+ * Never 0.
  */
 u32 ec_newentity(struct ec *ec);
 
@@ -140,6 +142,17 @@ void ec_set_component(struct ec *ec,
 		       const char *component,
 		       const char *buffer,
 		       const jsmntok_t *tok);
+
+/** ec_set_component_datuml
+ *
+ * @brief Like ec_set_component, but accepts a buffer and
+ * length containing valid JSON text.
+ */
+void ec_set_component_datuml(struct ec *ec,
+			     u32 entity,
+			     const char *component,
+			     const char *value,
+			     size_t len);
 
 /** ec_set_component_datum
  *

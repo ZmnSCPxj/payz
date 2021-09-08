@@ -60,19 +60,19 @@ struct ecsys *ecsys_new_(const tal_t *ctx,
 			 void (*plugin_log)(struct plugin *,
 					    enum log_level,
 					    const char *));
-#define ecs_new(ctx, getc, setc, ec, timer, tcomp, log) \
-	ecs_new_((ctx), \
-		 typesafe_cb_postargs(void, const void *, (getc), (ec), \
-				      const char **, \
-				      const jsmntok_t **, \
-				      u32, \
-				      const char*), \
-		 typesafe_cb_postargs(void, void *, (setc), (ec), \
-				      u32, \
-				      const char *, \
-				      const char *, \
-				      const jsmntok_t *), \
-		 (ec), (timer), (tcomp), (log))
+#define ecsys_new(ctx, getc, setc, ec, timer, tcomp, log) \
+	ecsys_new_((ctx), \
+		   typesafe_cb_postargs(void, const void *, (getc), (ec), \
+					const char **, \
+					const jsmntok_t **, \
+					u32, \
+					const char*), \
+		   typesafe_cb_postargs(void, void *, (setc), (ec), \
+					u32, \
+					const char *, \
+					const char *, \
+					const jsmntok_t *), \
+		   (ec), (timer), (tcomp), (log))
 
 /** ecsys_register
  *
@@ -116,13 +116,13 @@ void ecsys_register_(struct ecsys *ecsys,
 						    u32 entity,
 						    void *arg),
 		     void *arg);
-#define ecsys_register(ecsys, sys, req, nreq, dis, ndis, code, arg) \
-	ecsys_register_((ecsys), (sys), (req), (nreq), (dis), (ndis), \
+#define ecsys_register(ecsys_o, sys, req, nreq, dis, ndis, code, arg) \
+	ecsys_register_((ecsys_o), (sys), (req), (nreq), (dis), (ndis), \
 			typesafe_cb_preargs(struct command_result *,\
 					    void *, (code), (arg), \
 					    struct plugin *, \
-					    const struct ecsys *, \
-					    u32) \
+					    struct ecsys *, \
+					    u32), \
 			(arg))
 
 /** ecsys_system_done
@@ -167,8 +167,8 @@ struct command_result *ecsys_advance_(struct plugin *plugin,
 								      errcode_t,
 								      void *cbarg),
 				      void *cbarg);
-#define ecsys_advance(plugin, ecsys, e, cb, errcb, cbarg) \
-	ecsys_advance_((plugin), (ecsys), (e), \
+#define ecsys_advance(plugin, sys, e, cb, errcb, cbarg) \
+	ecsys_advance_((plugin), (sys), (e), \
 		       typesafe_cb_preargs(struct command_result *, void*, \
 					   (cb), (cbarg), \
 					   struct plugin *, \
