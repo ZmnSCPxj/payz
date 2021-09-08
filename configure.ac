@@ -25,8 +25,6 @@ AM_CONDITIONAL([USE_VALGRIND], [test x"$enable_valgrind" = xyes])
 # Checks for library functions.
 
 AC_CONFIG_FILES([Makefile
-                 ccan/Makefile
-                 external/basicsecure/Makefile
                 ])
 AC_CONFIG_SUBDIRS([ccan
                    external/basicsecure
