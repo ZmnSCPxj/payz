@@ -106,7 +106,9 @@ PAY_SOURCES = \
 	plugins/payz/ecs/ecsys.c \
 	plugins/payz/ecs/ecsys.h \
 	plugins/payz/main.c \
-	plugins/payz/main.h
+	plugins/payz/main.h \
+	plugins/payz/top.c \
+	plugins/payz/top.h
 
 libpayz_la_SOURCES = \
 	$(COMMON_SOURCES) \
