@@ -6,6 +6,7 @@
 #include<common/status_levels.h>
 #include<common/utils.h>
 #include<errno.h>
+#include<stdarg.h>
 
 /*-----------------------------------------------------------------------------
 Objects
@@ -167,6 +168,20 @@ static void run_system(struct plugin *plugin,
 		       struct ecsys *ecsys,
 		       u32 entity,
 		       struct ecsys_registered *system);
+/* Call to add an `error` field to `lightningd:systems`.  */
+static struct command_result *
+PRINTF_FMT(7, 8)
+ecsys_advance_error(struct plugin *plugin,
+		    struct ecsys *ecsys,
+		    u32 entity,
+		    struct command_result *(*errcb)(struct plugin *,
+						    struct ecsys *,
+						    errcode_t,
+						    void *cbarg),
+		    void *cbarg,
+		    errcode_t code,
+		    const char *fmt, ...);
+
 struct command_result *ecsys_advance_(struct plugin *plugin,
 				      struct ecsys *ecsys,
 				      u32 entity,
@@ -199,22 +214,44 @@ struct command_result *ecsys_advance_(struct plugin *plugin,
 			     &buffer, &tok,
 			     entity,
 			     "lightningd:systems");
+	if (tok->type != JSMN_OBJECT)
+		return ecsys_advance_error(plugin, ecsys, entity,
+					   errcb, cbarg,
+					   PAY_ECS_INVALID_SYSTEMS_COMPONENT,
+					   "Invalid `lightningd:systems`: "
+					   "%.*s",
+					   json_tok_full_len(tok),
+					   json_tok_full(buffer, tok));
 	j_systems = json_get_member(buffer, tok, "systems");
 	if (!j_systems)
-		return errcb(plugin, ecsys,
-			     PAY_ECS_INVALID_SYSTEMS_COMPONENT,
-			     cbarg);
+		return ecsys_advance_error(plugin, ecsys, entity,
+					   errcb, cbarg,
+					   PAY_ECS_INVALID_SYSTEMS_COMPONENT,
+					   "Invalid `lightningd:systems`: "
+					   "`systems` field not found: %.*s",
+					   json_tok_full_len(tok),
+					   json_tok_full(buffer, tok));
 	if (j_systems->type != JSMN_ARRAY)
-		return errcb(plugin, ecsys,
-			     PAY_ECS_INVALID_SYSTEMS_COMPONENT,
-			     cbarg);
+		return ecsys_advance_error(plugin, ecsys, entity,
+					   errcb, cbarg,
+					   PAY_ECS_INVALID_SYSTEMS_COMPONENT,
+					   "Invalid `lightningd:systems`: "
+					   "`systems` field not an array: "
+					   "%.*s",
+					   json_tok_full_len(j_systems),
+					   json_tok_full(buffer, j_systems));
 	nsystems = j_systems->size;
 	j_next = json_get_member(buffer, tok, "next");
 	if (j_next) {
 		if (!json_to_number(buffer, tok, &next))
-			return errcb(plugin, ecsys,
-				     PAY_ECS_INVALID_SYSTEMS_COMPONENT,
-				     cbarg);
+			return ecsys_advance_error(plugin, ecsys, entity,
+						   errcb, cbarg,
+						   PAY_ECS_INVALID_SYSTEMS_COMPONENT,
+						   "Invalid `lightningd:systems`: "
+						   "`next` field not an "
+						   "unsigned int: %.*s",
+						   json_tok_full_len(j_next),
+						   json_tok_full(buffer, j_next));
 	} else
 		next = 0;
 
@@ -222,9 +259,14 @@ struct command_result *ecsys_advance_(struct plugin *plugin,
 	systems = tal_arr(tmpctx, char *, 0);
 	json_for_each_arr (i, j_system, j_systems) {
 		if (j_system->type != JSMN_STRING)
-			return errcb(plugin, ecsys,
-				     PAY_ECS_INVALID_SYSTEMS_COMPONENT,
-				     cbarg);
+			return ecsys_advance_error(plugin, ecsys, entity,
+						   errcb, cbarg,
+						   PAY_ECS_INVALID_SYSTEMS_COMPONENT,
+						   "Invalid `lightningd:systems`: "
+						   "`systems` array contains "
+						   "non-string: %.*s",
+						   json_tok_full_len(j_system),
+						   json_tok_full(buffer, j_system));
 		tal_arr_expand(&systems,
 			       json_strdup(tmpctx, buffer, j_system));
 	}
@@ -237,9 +279,13 @@ struct command_result *ecsys_advance_(struct plugin *plugin,
 		/* Find the system.  */
 		system = strmap_get(&ecsys->system_map, systems[index]);
 		if (!system)
-			return errcb(plugin, ecsys,
-				     PAY_ECS_INVALID_SYSTEMS_COMPONENT,
-				     cbarg);
+			return ecsys_advance_error(plugin, ecsys, entity,
+						   errcb, cbarg,
+						   PAY_ECS_INVALID_SYSTEMS_COMPONENT,
+						   "Invalid `lightningd:systems`: "
+						   "`systems` array contains "
+						   "unregistered system: %s",
+						   systems[index]);
 
 		if (system_matches(ecsys, entity, system)) {
 			found = true;
@@ -247,9 +293,10 @@ struct command_result *ecsys_advance_(struct plugin *plugin,
 		}
 	}
 	if (!found)
-		return errcb(plugin, ecsys,
-			     PAY_ECS_INVALID_SYSTEMS_COMPONENT,
-			     cbarg);
+		return ecsys_advance_error(plugin, ecsys, entity,
+					   errcb, cbarg,
+					   PAY_ECS_NOT_ADVANCEABLE,
+					   "No systems match, cannot advance.");
 
 	/* Update component.  */
 	next = (index + 1) % nsystems;
@@ -356,6 +403,79 @@ static void run_system_cb(void *vinfo)
 	(void) system->code(plugin, ecsys, entity, system->arg);
 }
 
+static struct command_result *
+PRINTF_FMT(7, 8)
+ecsys_advance_error(struct plugin *plugin,
+		    struct ecsys *ecsys,
+		    u32 entity,
+		    struct command_result *(*errcb)(struct plugin *,
+						    struct ecsys *,
+						    errcode_t,
+						    void *cbarg),
+		    void *cbarg,
+		    errcode_t code,
+		    const char *fmt, ...)
+{
+	const char *msg;
+	va_list ap;
+
+	const char *buffer;
+	const jsmntok_t *toks;
+
+	struct json_out *jout = json_out_new(tmpctx);
+
+	size_t i;
+	size_t len;
+	const jsmntok_t *key;
+	const jsmntok_t *value;
+
+	/* Generate message. */
+	va_start(ap, fmt);
+	msg = tal_vfmt(tmpctx, fmt, ap);
+	va_end(ap);
+
+	/* Fetch the existing `lightningd:systems` component.  */
+	ecsys->get_component(ecsys->ec, &buffer, &toks,
+			     entity, "lightningd:systems");
+
+	/* Start building the object we will replace into
+	 * `lightningd:systems`.  */
+	json_out_start(jout, NULL, '{');
+	/* If the current value is an object, add its contents verbatim.  */
+	if (toks->type == JSMN_OBJECT) {
+		json_for_each_obj (i, key, toks) {
+			value = key + 1;
+			/* Skip any existing `error` field.  */
+			if (json_tok_streq(buffer, key, "error"))
+				continue;
+
+			/* Copy the value directly.  */
+			memcpy(json_out_member_direct(jout,
+						      json_strdup(tmpctx,
+							          buffer,
+								  key),
+						      value->end - value->start),
+			       buffer + value->start,
+			       value->end - value->start);
+		}
+	}
+	/* Now add a new `error` sub-object.  */
+	json_out_start(jout, "error", '{');
+	json_out_add(jout, "code", false, "%"PRIerrcode, code);
+	json_out_add(jout, "message", true, "%s", msg);
+	json_out_end(jout, '}');
+	json_out_end(jout, '}');
+
+	/* *FINALLY* put the jout into the `lightningd:systems`.  */
+	buffer = json_out_contents(jout, &len);
+	toks = json_parse_simple(tmpctx, buffer, len);
+	ecsys->set_component(ecsys->ec, entity, "lightningd:systems",
+			     buffer, toks);
+
+	/* Call back.  */
+	return errcb(plugin, ecsys, code, cbarg);
+}
+
 /*-----------------------------------------------------------------------------
 Advance Done
 -----------------------------------------------------------------------------*/
@@ -399,44 +519,36 @@ ecsys_done_wrap(struct plugin *plugin,
 static struct command_result *
 ecsys_err_wrap(struct plugin *plugin,
 	       struct ecsys *ecsys,
-	       errcode_t err,
+	       errcode_t code,
 	       struct ecsys_advance_done_info *inf)
 {
 	u32 entity = inf->entity;
 	enum log_level level;
-	const char *msg;
+	char *msg;
 
-	if (err == PAY_ECS_INVALID_SYSTEMS_COMPONENT) {
-		const char *buffer;
-		const jsmntok_t *tok;
+	const char *err;
 
-		ecsys->get_component(ecsys->ec,
-				     &buffer, &tok,
-				     entity, "lightningd:systems");
+	const char *buffer;
+	const jsmntok_t *tok;
 
-		level = LOG_BROKEN;
-		msg = tal_fmt(tmpctx,
-			      "entity %"PRIu32": Invalid lightningd:systems "
-			      "component: %.*s",
-			      entity,
-			      tok->end - tok->start,
-			      buffer + tok->start);
-	} else if (err == PAY_ECS_NOT_ADVANCEABLE) {
+	if (code == PAY_ECS_NOT_ADVANCEABLE)
 		level = LOG_UNUSUAL;
-		msg = tal_fmt(tmpctx,
-			      "entity %"PRIu32": Cannot advance, no matching "
-			      "systems in lightningd::systems.",
-			      entity);
-	} else {
+	else
 		level = LOG_BROKEN;
-		msg = tal_fmt(tmpctx,
-			      "entity %"PRIu32": Unexpected error "
-			      "%"PRIerrcode".",
-			      entity,
-			      err);
-	}
 
-	ecsys->plugin_log(plugin, level, msg);
+	/* Extract the error.message.  */
+	ecsys->get_component(ecsys->ec, &buffer, &tok,
+			     entity, "lightningd:systems");
+	err = json_scan(tmpctx, buffer, tok,
+			"{error: {message: % }}",
+			JSON_SCAN_TAL(tmpctx, json_strdup, &msg));
+	assert(!err);
+	(void)err;
+
+	ecsys->plugin_log(plugin, level,
+			  tal_fmt(tmpctx,
+				 "entity %"PRIu32": %s",
+				 entity, msg));
 
 	return ecsys_done_wrap(plugin, ecsys, inf);
 }
