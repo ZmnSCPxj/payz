@@ -20,5 +20,8 @@ struct command;
 struct command_result *param_string(struct command *cmd, const char *name,
 				    const char * buffer, const jsmntok_t *tok,
 				    const char **str);
+struct command_result *param_number(struct command *cmd, const char *name,
+				    const char *buffer, const jsmntok_t *tok,
+				    unsigned int **num);
 
 #endif /* PAYZ_COMMON_JSON_TOK_H */
