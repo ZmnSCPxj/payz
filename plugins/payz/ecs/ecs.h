@@ -226,9 +226,11 @@ To use:
 
 struct command_result *system_name_code(struct plugin *,
 					struct ecs *,
+					const char *system,
 					u32 entity);
 struct command_result *other_system_name_code(struct plugin *,
 					      struct ecs *,
+					      const char *system,
 					      u32 entity);
 
 const struct ecs_register_desc desc[] = {
@@ -268,7 +270,7 @@ struct ecs_register_desc {
 
 typedef
 struct command_result *
-(*ecs_system_function)(struct plugin*, struct ecs *, u32);
+(*ecs_system_function)(struct plugin*, struct ecs *, const char *system, u32);
 
 #define ECS_REGISTER_NAME(name) \
 	{ ECS_REGISTER_TYPE_NAME, \

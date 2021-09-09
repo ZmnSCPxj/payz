@@ -2,6 +2,7 @@
 #include<assert.h>
 #include<ccan/compiler/compiler.h>
 #include<ccan/likely/likely.h>
+#include<ccan/tal/str/str.h>
 #include<common/status_levels.h>
 #include<common/utils.h>
 #include<plugins/libplugin.h>
@@ -251,6 +252,7 @@ void ecs_register_concat(struct ecs_register_desc **parray,
 
 struct ecs_system_wrapper {
 	struct ecs *ecs;
+	const char *name;
 	ecs_system_function func;
 };
 static struct command_result *
@@ -315,6 +317,7 @@ void ecs_register(struct ecs *ecs,
 			 */
 			wrapper = tal(ecs, struct ecs_system_wrapper);
 			wrapper->ecs = ecs;
+			wrapper->name = tal_strdup(wrapper, name);
 			wrapper->func = func;
 
 			ecsys_register(ecs->ecsys, name,
@@ -350,5 +353,5 @@ ecs_system_wrapper_func(struct plugin *plugin,
 			u32 entity,
 			struct ecs_system_wrapper *wrapper)
 {
-	return wrapper->func(plugin, wrapper->ecs, entity);
+	return wrapper->func(plugin, wrapper->ecs, wrapper->name, entity);
 }
