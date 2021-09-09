@@ -21,6 +21,7 @@
  * @brief Represents a JSON datum of a component,
  */
 struct ec_cell {
+	const char *component;
 	char *buffer;
 	jsmntok_t *tok;
 };
@@ -156,6 +157,7 @@ bool ec_get_component(const struct ec *ec,
 
 static struct ec_entityrow *ec_entityrow_new(const tal_t *ctx);
 static struct ec_cell *ec_cell_new(const tal_t *ctx,
+				   const char *component,
 				   const char *buffer,
 				   const jsmntok_t *tok);
 void ec_set_component(struct ec *ec,
@@ -210,8 +212,8 @@ void ec_set_component(struct ec *ec,
 		}
 
 		/* Now attach.  */
-		cell = ec_cell_new(entityrow, buffer, tok);
-		strmap_add(&entityrow->component_map, component, cell);
+		cell = ec_cell_new(entityrow, component, buffer, tok);
+		strmap_add(&entityrow->component_map, cell->component, cell);
 	}
 }
 
@@ -227,6 +229,7 @@ static struct ec_entityrow *ec_entityrow_new(const tal_t *ctx)
 }
 
 static struct ec_cell *ec_cell_new(const tal_t *ctx,
+				   const char *component,
 				   const char *buffer,
 				   const jsmntok_t *tok)
 {
@@ -242,6 +245,7 @@ static struct ec_cell *ec_cell_new(const tal_t *ctx,
 	int offset = to_copy - buffer;
 
 	/* Load the cell.  */
+	cell->component = tal_strdup(cell, component);
 	cell->buffer = tal_dup_arr(cell, char,
 				   to_copy, len, 0);
 	cell->tok = tal_dup_arr(cell, jsmntok_t,
