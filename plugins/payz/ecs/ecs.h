@@ -2,6 +2,7 @@
 #define LIGHTNING_PLUGINS_PAYZ_ECS_ECS_H
 #include"config.h"
 #include<ccan/take/take.h>
+#include<ccan/take/take.h>
 #include<ccan/tal/tal.h>
 #include<ccan/typesafe_cb/typesafe_cb.h>
 #include<common/json.h>
@@ -331,5 +332,25 @@ void ecs_register_concat(struct ecs_register_desc **parray,
  */
 void ecs_register(struct ecs *ecs,
 		  const struct ecs_register_desc *to_register TAKES);
+
+/*~
+ * The below are used in conjunction with ecs_register_begin to
+ * perform "dynamic" registration.
+ * They are congruent macro versions except they must be used in
+ * code, in combination with ecs_register_begin, and not in
+ * declarations.
+ *
+ * Notice there is no over-and-out --- the functions below
+ * automatically append it.
+ */
+void ecs_register_name(struct ecs_register_desc **parray,
+		       const char *name TAKES);
+void ecs_register_func(struct ecs_register_desc **parray,
+		       ecs_system_function func);
+void ecs_register_require(struct ecs_register_desc **parray,
+			  const char *component TAKES);
+void ecs_register_disallow(struct ecs_register_desc **parray,
+			   const char *component TAKES);
+void ecs_register_done(struct ecs_register_desc **parray);
 
 #endif /* LIGHTNING_PLUGINS_PAYZ_ECS_ECS_H */

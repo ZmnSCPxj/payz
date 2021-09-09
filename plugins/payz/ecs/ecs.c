@@ -355,3 +355,51 @@ ecs_system_wrapper_func(struct plugin *plugin,
 {
 	return wrapper->func(plugin, wrapper->ecs, wrapper->name, entity);
 }
+
+/*-----------------------------------------------------------------------------
+Dynamic registration
+-----------------------------------------------------------------------------*/
+
+static
+void ecs_register_extend(struct ecs_register_desc **parray,
+			 enum ecs_register_type type,
+			 const void *pointer)
+{
+	size_t n = tal_count(*parray);
+	(*parray)[n - 1].type = type;
+	(*parray)[n - 1].pointer = pointer;
+	tal_arr_expand(parray, over_and_out);
+}
+
+void ecs_register_name(struct ecs_register_desc **parray,
+		       const char *name TAKES)
+{
+	ecs_register_extend(parray, ECS_REGISTER_TYPE_NAME,
+			    (const void *) tal_strdup(*parray, name));
+}
+
+void ecs_register_func(struct ecs_register_desc **parray,
+		       ecs_system_function func)
+{
+	ecs_register_extend(parray, ECS_REGISTER_TYPE_FUNC,
+			    (const void *) func);
+}
+
+void ecs_register_require(struct ecs_register_desc **parray,
+			  const char *component TAKES)
+{
+	ecs_register_extend(parray, ECS_REGISTER_TYPE_REQUIRE,
+			    (const void *) tal_strdup(*parray, component));
+}
+
+void ecs_register_disallow(struct ecs_register_desc **parray,
+			   const char *component TAKES)
+{
+	ecs_register_extend(parray, ECS_REGISTER_TYPE_DISALLOW,
+			    (const void *) tal_strdup(*parray, component));
+}
+
+void ecs_register_done(struct ecs_register_desc **parray)
+{
+	ecs_register_extend(parray, ECS_REGISTER_TYPE_DONE, NULL);
+}
