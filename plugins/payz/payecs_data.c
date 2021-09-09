@@ -136,7 +136,8 @@ struct payecs_writespec {
  * @brief Extract a payecs_writespec.
  */
 static bool
-json_to_payecs_writespec(const char *buffer, const jsmntok_t *tok,
+json_to_payecs_writespec(const tal_t *ctx,
+			 const char *buffer, const jsmntok_t *tok,
 			 struct payecs_writespec *spec)
 {
 	bool entity_found = false;
@@ -176,7 +177,7 @@ json_to_payecs_writespec(const char *buffer, const jsmntok_t *tok,
 
 		++spec->num_components;
 		strmap_add(&spec->components,
-			   json_strdup(tmpctx, buffer, key),
+			   json_strdup(ctx, buffer, key),
 			   value);
 	}
 
@@ -217,7 +218,8 @@ param_array_of_payecs_writespec(struct command *cmd,
 		strmap_init(&(*spec)[0].components);
 		tal_add_destructor(*spec, &destroy_payecs_writespec_array);
 
-		if (!json_to_payecs_writespec(buffer, tok,
+		if (!json_to_payecs_writespec(cmd,
+					      buffer, tok,
 					      &(*spec)[0]))
 			goto fail;
 
@@ -235,7 +237,8 @@ param_array_of_payecs_writespec(struct command *cmd,
 	tal_add_destructor(*spec, &destroy_payecs_writespec_array);
 
 	json_for_each_arr (i, entry, tok) {
-		if (!json_to_payecs_writespec(buffer, entry,
+		if (!json_to_payecs_writespec(cmd,
+					      buffer, entry,
 					      &(*spec)[i]))
 			goto fail;
 	}
