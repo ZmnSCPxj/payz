@@ -215,6 +215,12 @@ struct command_result *ecs_advance_done(struct plugin *plugin,
 	return ecsys_advance_done(plugin, ecs->ecsys, entity);
 }
 
+bool ecs_system_exists(const struct ecs *ecs,
+		       const char *system)
+{
+	return ecsys_system_exists(ecs->ecsys, system);
+}
+
 /*-----------------------------------------------------------------------------
 Registration
 -----------------------------------------------------------------------------*/

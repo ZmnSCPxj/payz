@@ -218,6 +218,20 @@ struct command_result *ecs_advance_done(struct plugin *plugin,
 					struct ecs *ecs,
 					u32 entity);
 
+/** ecs_system_exists
+ *
+ * @brief Check if a system of a specific name is already
+ * registered.
+ *
+ * @param ecs - the ECS framework to query.
+ * @param system - the name of the system to check.
+ *
+ * @return - true if a system of the given name is already
+ * registered, false otherwise.
+ */
+bool ecs_system_exists(const struct ecs *ecs,
+		       const char *system);
+
 /*-----------------------------------------------------------------------------
 System Registration
 -----------------------------------------------------------------------------*/

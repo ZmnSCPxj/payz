@@ -552,3 +552,13 @@ ecsys_err_wrap(struct plugin *plugin,
 
 	return ecsys_done_wrap(plugin, ecsys, inf);
 }
+
+/*-----------------------------------------------------------------------------
+Exist
+-----------------------------------------------------------------------------*/
+
+bool ecsys_system_exists(const struct ecsys *ecsys,
+			 const char *system)
+{
+	return strmap_get(&ecsys->system_map, system) != NULL;
+}

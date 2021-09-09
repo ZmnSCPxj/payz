@@ -199,6 +199,20 @@ struct command_result *ecsys_advance_done(struct plugin *plugin,
 					  struct ecsys *ecsys,
 					  u32 entity);
 
+/** ecsys_system_exists
+ *
+ * @brief Check if a system of a specific name is already
+ * registered.
+ *
+ * @param ecsys - the system handler to query.
+ * @param system - the name of the system to check.
+ *
+ * @return - true if a system of the given name is already
+ * registered, false otherwise.
+ */
+bool ecsys_system_exists(const struct ecsys *ecsys,
+			 const char *system);
+
 /* The `lightningd:systems` component is not attached, or
  * does not have a valid `systems` field or a valid `next`
  * field, or one of the listed `systems` is not registered.  */
