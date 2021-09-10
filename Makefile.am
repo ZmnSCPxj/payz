@@ -109,6 +109,8 @@ PAY_SOURCES = \
 	plugins/payz/ecs/ecsys.h \
 	plugins/payz/main.c \
 	plugins/payz/main.h \
+	plugins/payz/parsing.c \
+	plugins/payz/parsing.h \
 	plugins/payz/payecs_data.c \
 	plugins/payz/payecs_data.h \
 	plugins/payz/top.c \
