@@ -4,6 +4,7 @@
 #include<common/utils.h>
 #include<plugins/libplugin.h>
 #include<plugins/payz/ecs/ecs.h>
+#include<plugins/payz/payecs_code.h>
 #include<plugins/payz/payecs_data.h>
 
 struct payz_top *payz_top = NULL;
@@ -23,6 +24,8 @@ void setup_payz_top(const char *pay_command,
 	payz_top->commands = tal_arr(payz_top, struct plugin_command, 0);
 	tal_expand(&payz_top->commands,
 		   payecs_data_commands, num_payecs_data_commands);
+	tal_expand(&payz_top->commands,
+		   payecs_code_commands, num_payecs_code_commands);
 
 	/* Register builtin systems.  */
 	to_register = ecs_register_begin(payz_top);

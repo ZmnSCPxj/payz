@@ -192,8 +192,8 @@ struct command_result *ecs_advance_(struct plugin *plugin,
 								    errcode_t,
 								    void *cbarg),
 				    void *cbarg);
-#define ecs_advance(plugin, ecs, entity, cb, errcb, cbarg) \
-	ecs_advance_((plugin), (ecs), (entity), \
+#define ecs_advance(plugin_o, ecs_o, entity, cb, errcb, cbarg) \
+	ecs_advance_((plugin_o), (ecs_o), (entity), \
 		     typesafe_cb_preargs(struct command_result *, void *, \
 					 (cb), (cbarg), \
 					 struct plugin *, \
