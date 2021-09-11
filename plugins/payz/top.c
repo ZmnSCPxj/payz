@@ -1,5 +1,7 @@
 #include"top.h"
 #include<assert.h>
+#include<ccan/tal/str/str.h>
+#include<common/utils.h>
 #include<plugins/libplugin.h>
 #include<plugins/payz/ecs/ecs.h>
 #include<plugins/payz/payecs_data.h>
@@ -9,6 +11,9 @@ struct payz_top *payz_top = NULL;
 void setup_payz_top(const char *pay_command,
 		    const char *keysend_command)
 {
+	struct ecs_register_desc *to_register;
+	struct ecs_register_desc *p;
+
 	assert(!payz_top);
 	payz_top = tal(NULL, struct payz_top);
 
@@ -18,6 +23,25 @@ void setup_payz_top(const char *pay_command,
 	payz_top->commands = tal_arr(payz_top, struct plugin_command, 0);
 	tal_expand(&payz_top->commands,
 		   payecs_data_commands, num_payecs_data_commands);
+
+	/* Register builtin systems.  */
+	to_register = ecs_register_begin(payz_top);
+	/* Systems that are included in default.  */
+	/* TODO: ecs_register_concat(&to_register, some_builtin_system); */
+
+	/* Extract default systems.  */
+	payz_top->default_systems = tal_arr(payz_top, const char *, 0);
+	for (p = to_register; p->type != ECS_REGISTER_TYPE_OVER_AND_OUT; ++p) {
+		if (p->type != ECS_REGISTER_TYPE_NAME)
+			continue;
+		tal_arr_expand(&payz_top->default_systems,
+			       tal_strdup(payz_top, (const char *) p->pointer));
+	}
+
+	/* Systems that are not included in default.  */
+	/* TODO: ecs_register_concat(&to_register, some_builtin_system); */
+
+	ecs_register(payz_top->ecs, take(to_register));
 
 	payz_top->notifications = NULL; /* TODO.  */
 	payz_top->hooks = NULL; /* TODO.  */

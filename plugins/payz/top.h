@@ -28,6 +28,13 @@ struct payz_top {
 	 */
 	struct ecs *ecs;
 
+	/** default_systems
+	 *
+	 * @brief the default built-in systems which operate
+	 * normal payments.
+	 */
+	const char **default_systems;
+
 	/** commands
 	 *
 	 * @brief an array of plugin commands to pass to
