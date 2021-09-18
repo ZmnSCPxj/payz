@@ -115,6 +115,10 @@ PAY_SOURCES = \
 	plugins/payz/payecs_code.h \
 	plugins/payz/payecs_data.c \
 	plugins/payz/payecs_data.h \
+	plugins/payz/tester/rpc.c \
+	plugins/payz/tester/rpc.h \
+	plugins/payz/tester/spawn.c \
+	plugins/payz/tester/spawn.h \
 	plugins/payz/top.c \
 	plugins/payz/top.h
 
