@@ -166,6 +166,8 @@ static void payz_tester_spawn_destructor(struct payz_tester_spawn *spawn)
 			err(1, "poll(%d)", spawn->from_stdout);
 		if (poll_res > 0) {
 			nread = read(spawn->from_stdout, buffer, sizeof(buffer));
+			if (nread < 0 && errno != EINTR)
+				err(1, "read(%d)", spawn->from_stdout);
 			/* EOF?  */
 			if (nread == 0)
 				break;
