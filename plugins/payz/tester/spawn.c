@@ -45,7 +45,7 @@ struct payz_tester_spawn *payz_tester_spawn_new(struct timerel timeout)
 		err(1, "spawn: pipe(stdin)");
 	pipe_res = pipe(pipe_stdout);
 	if (pipe_res < 0)
-		err(1, "spawn: pipe(stdin)");
+		err(1, "spawn: pipe(stdout)");
 
 	pid = fork();
 	if (pid < 0)
