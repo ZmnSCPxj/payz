@@ -35,9 +35,9 @@ void payz_tester_loop_(const char *source,
 		       struct timerel timeout,
 		       bool (*cb)(void *cbarg),
 		       void *cbarg);
-#define payz_tester_loop(src, c, r, s, st, to, cb, arg) \
+#define payz_tester_loop(src, c, r, s, to, cb, arg) \
 	payz_tester_loop_((src), (c), (r), (s), (to), \
-			  typesafe_cb(void, void *, (cb), (arg)), \
+			  typesafe_cb(bool, void *, (cb), (arg)), \
 			  (arg))
 
 #endif /* LIGHTNING_PLUGINS_PAYZ_TESTER_LOOP_H */
