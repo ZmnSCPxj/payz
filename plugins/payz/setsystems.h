@@ -2,6 +2,7 @@
 #define LIGHTNING_PLUGINS_PAYZ_SETSYSTEMS_H
 #include"config.h"
 #include<ccan/short_types/short_types.h>
+#include<ccan/tal/tal.h>
 #include<ccan/typesafe_cb/typesafe_cb.h>
 #include<common/json.h>
 #include<stddef.h>
@@ -115,10 +116,41 @@ bool payz_getsystems_(u32 entity,
 					     const char *, \
 					     const jsmntok_t *), \
 			 (v))
+/** payz_getsystems_tal
+ *
+ * @brief Like payz_getsystems but using a tal-allocating JSON
+ * parsing function.
+ *
+ * @param ctx - the owenr of the result.
+ * @param entity - the Entity to query.
+ * @param fieldname - the field of `lightningd:systems`.
+ * @param json_to_x - the json_to_* function to use to
+ * parse the field.
+ * @param variable - the location to set with the result
+ * from the json_to_x function.
+ *
+ * @return - true if the field exists *and* parsing of
+ * json_to_x succeeded.
+ */
+bool payz_getsystems_tal_(const tal_t *ctx,
+			  u32 entity,
+			  const char *fieldname,
+			  void *(*json_to_x)(const tal_t *ctx,
+					     const char *buffer,
+					     const jsmntok_t *tok),
+			  void **variable);
+#define payz_getsystems_tal(ctx, e, f, j, v) \
+	payz_getsystems_tal_((ctx), (e), (f), \
+			     ((void *(*)(const tal_t *, \
+					 const char *, \
+					 const jsmntok_t *)) (j)), \
+			     ((v) + 0 * sizeof((*(v)) = (j)((ctx), \
+							    (const char *) NULL,\
+							    (const jsmntok_t *) NULL))))
 
 /** payz_generic_getsystems
  *
- * @brief like payz_getsystems, but uses the Entitcy Component
+ * @brief like payz_getsystems, but uses the Entity Component
  * table passed in.
  *
  * @param get_component - function to get the component from the
@@ -153,5 +185,46 @@ bool payz_generic_getsystems_(bool (*get_entity)(const void *ec,
 						     const char *, \
 						     const jsmntok_t *), \
 				 (v))
+
+/** payz_generic_getsystems_tal
+ *
+ * @brief Like payz_generic_getsystems, but using a tal-allocating
+ * JSON parsing function.
+ *
+ * @param ctx - the owenr of the result.
+ * @param get_component - function to get the component from the
+ * given Entity Component table.
+ * @param ec - the Entity Component table.
+ * @param entity - the Entity to query.
+ * @param fieldname - the field of `lightningd:systems`.
+ * @param json_to_x - the json_to_* function to use to
+ * parse the field.
+ * @param variable - the location to set with the result
+ * from the json_to_x function.
+ *
+ * @return - true if the field exists *and* parsing of
+ * json_to_x succeeded.
+ */
+bool payz_generic_getsystems_tal_(const tal_t *ctx,
+				  bool (*get_entity)(const void *ec,
+						     const char **buffer,
+						     const jsmntok_t **toks,
+						     u32 entity,
+						     const char *component),
+				  const void *ec,
+				  u32 entity,
+				  const char *fieldname,
+				  void *(*json_to_x)(const tal_t *ctx,
+						     const char *buffer,
+						     const jsmntok_t *tok),
+				  void **variable);
+#define payz_generic_getsystems_tal(ctx, ge, ec, e, f, j, v) \
+	payz_generic_getsystems_tal_((ctx), (ge), (ec), (e), (f), \
+				     ((void *(*)(const tal_t *, \
+						 const char *, \
+						 const jsmntok_t *)) (j)), \
+				     ((v) + 0 * sizeof((*(v)) = (j)((ctx), \
+								    (const char *) NULL,\
+								    (const jsmntok_t *) NULL))))
 
 #endif /* LIGHTNING_PLUGINS_PAYZ_SETSYSTEMS_H */

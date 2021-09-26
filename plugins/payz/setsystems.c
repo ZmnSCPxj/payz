@@ -129,6 +129,37 @@ bool payz_generic_getsystems_(bool (*get_entity)(const void *ec,
 	return json_to_x(buffer, toks, variable);
 }
 
+bool payz_generic_getsystems_tal_(const tal_t *ctx,
+				  bool (*get_entity)(const void *ec,
+						     const char **buffer,
+						     const jsmntok_t **toks,
+						     u32 entity,
+						     const char *component),
+				  const void *ec,
+				  u32 entity,
+				  const char *fieldname,
+				  void *(*json_to_x)(const tal_t *ctx,
+						     const char *buffer,
+						     const jsmntok_t *tok),
+				  void **variable)
+{
+	const char *buffer;
+	const jsmntok_t *toks;
+
+	if (!get_entity(ec, &buffer, &toks, entity, syscomp))
+		return false;
+
+	toks = json_get_member(buffer, toks, fieldname);
+	if (!toks)
+		return false;
+
+	*variable = json_to_x(ctx, buffer, toks);
+	if (!*variable)
+		return false;
+
+	return true;
+}
+
 bool payz_getsystems_(u32 entity,
 		      const char *fieldname,
 		      bool (*json_to_x)(const char *buffer,
@@ -145,4 +176,24 @@ bool payz_getsystems_(u32 entity,
 					payz_top->ecs,
 					entity, fieldname,
 					json_to_x, variable);
+}
+
+bool payz_getsystems_tal_(const tal_t *ctx,
+			  u32 entity,
+			  const char *fieldname,
+			  void *(*json_to_x)(const tal_t *ctx,
+					     const char *buffer,
+					     const jsmntok_t *tok),
+			  void **variable)
+{
+	typedef bool (*get_component_t)(const void *,
+					const char **,
+					const jsmntok_t **,
+					u32,
+					const char *);
+	return payz_generic_getsystems_tal_(ctx,
+					    (get_component_t) &ecs_get_component,
+					    payz_top->ecs,
+					    entity, fieldname,
+					    json_to_x, variable);
 }
