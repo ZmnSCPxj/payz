@@ -1,6 +1,7 @@
 #ifndef LIGHTNING_PLUGINS_PAYZ_TESTER_TESTER_H
 #define LIGHTNING_PLUGINS_PAYZ_TESTER_TESTER_H
 #include"config.h"
+#include<common/errcode.h>
 #include<common/json.h>
 #include<stdbool.h>
 
@@ -56,10 +57,28 @@ bool payz_tester_command(const char **buffer,
  * @desc This function calls into payz_tester_command.
  *
  * @param method - the method to call in the plugin.
- *
+ * @param params - the parameters to provide.
+ * @param expected - the expected result, a C string
+ * containing valid JSON text.
  */
 void payz_tester_command_expect(const char *method,
 				const char *params,
 				const char *expected);
+
+/** payz_tester_command_expectfail
+ *
+ * @brief Send a command and parameters, and assert that
+ * the command fails with the given error code.
+ *
+ * @desc This function calls into payz_tester_command.
+ *
+ * @param method - the method to call in the plugin.
+ * @param params - the parameters to provide.
+ * @param expected_code - the error code we expect to
+ * receive.
+ */
+void payz_tester_command_expectfail(const char *method,
+				    const char *params,
+				    errcode_t expected_code);
 
 #endif /* LIGHTNING_PLUGINS_PAYZ_TESTER_TESTER_H */

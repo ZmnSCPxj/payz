@@ -285,3 +285,39 @@ void payz_tester_command_expect(const char *method,
 		     json_tok_full_len(result),
 		     json_tok_full(buffer, result));
 }
+
+void payz_tester_command_expectfail(const char *method,
+				    const char *params,
+				    errcode_t expected_code)
+{
+	bool ret;
+	const char *buffer;
+	const jsmntok_t *result;
+
+	const char *error;
+	errcode_t actual_code;
+
+	ret = payz_tester_command(&buffer, &result, method, params);
+	if (ret)
+		errx(1, "payz_tester_command_expectfail(%s, %s, "
+		     "%"PRIerrcode"): Command succeeded? %.*s",
+		     method, params, expected_code,
+		     json_tok_full_len(result),
+		     json_tok_full(buffer, result));
+
+	error = json_scan(tmpctx, buffer, result,
+			  "{code:%}",
+			  JSON_SCAN(json_to_errcode, &actual_code));
+	if (error)
+		errx(1, "payz_tester_command_expectfail(%s, %s, "
+		     "%"PRIerrcode"): Failed to parse error: %s",
+		     method, params, expected_code,
+		     error);
+
+	if (actual_code != expected_code)
+		errx(1, "payz_tester_command_expectfail(%s, %s, "
+		     "%"PRIerrcode"): Expected error code %"PRIerrcode", "
+		     "got %"PRIerrcode"",
+		     method, params, expected_code,
+		     expected_code, actual_code);
+}
