@@ -117,6 +117,8 @@ PAY_SOURCES = \
 	plugins/payz/payecs_code.h \
 	plugins/payz/payecs_data.c \
 	plugins/payz/payecs_data.h \
+	plugins/payz/setsystems.c \
+	plugins/payz/setsystems.h \
 	plugins/payz/tester/command.c \
 	plugins/payz/tester/command.h \
 	plugins/payz/tester/loop.c \
