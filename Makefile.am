@@ -152,6 +152,11 @@ MY_INCLUDEDIRS = \
 AM_CFLAGS = -Wall -Werror $(MY_INCLUDEDIRS)
 LDADD = libpayz.la
 
+AM_DEFAULT_SOURCE_EXT = .c
+TESTS = \
+	plugins/payz/tests/test_simple
+check_PROGRAMS = $(TESTS)
+
 if USE_VALGRIND
 LOG_COMPILER = valgrind
 AM_LOG_FLAGS = --leak-check=full --error-exitcode=1
