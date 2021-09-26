@@ -144,9 +144,10 @@ bool payz_getsystems_tal_(const tal_t *ctx,
 			     ((void *(*)(const tal_t *, \
 					 const char *, \
 					 const jsmntok_t *)) (j)), \
-			     ((v) + 0 * sizeof((*(v)) = (j)((ctx), \
-							    (const char *) NULL,\
-							    (const jsmntok_t *) NULL))))
+			     ((void **) \
+			      ((v) + 0 * sizeof((*(v)) = (j)((ctx), \
+							     (const char *) NULL,\
+							     (const jsmntok_t *) NULL)))))
 
 /** payz_generic_getsystems
  *
@@ -223,8 +224,9 @@ bool payz_generic_getsystems_tal_(const tal_t *ctx,
 				     ((void *(*)(const tal_t *, \
 						 const char *, \
 						 const jsmntok_t *)) (j)), \
-				     ((v) + 0 * sizeof((*(v)) = (j)((ctx), \
-								    (const char *) NULL,\
-								    (const jsmntok_t *) NULL))))
+				     ((void **) \
+				      ((v) + 0 * sizeof((*(v)) = (j)((ctx), \
+								     (const char *) NULL,\
+								     (const jsmntok_t *) NULL)))))
 
 #endif /* LIGHTNING_PLUGINS_PAYZ_SETSYSTEMS_H */

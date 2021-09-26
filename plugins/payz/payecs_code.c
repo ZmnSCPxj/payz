@@ -14,6 +14,7 @@
 #include<common/param.h>
 #include<plugins/payz/ecs/ecs.h>
 #include<plugins/payz/parsing.h>
+#include<plugins/payz/setsystems.h>
 #include<plugins/payz/top.h>
 
 /*-----------------------------------------------------------------------------
@@ -351,49 +352,9 @@ payecs_external_proxy_ng(struct command *command,
 	/* Command failed, update the `lightningd:systems` component
 	 * and add the error.
 	 */
-	const char *compbuf;
-	const jsmntok_t *comptok;
-
-	size_t i;
-	const jsmntok_t *key;
-	const jsmntok_t *value;
-
-	struct json_stream *js;
-
-	const char *newcompbuf;
-	size_t newcomplen;
-
 	tal_steal(tmpctx, closure);
 
-	/* Get the current lightningd:systems.  */
-	ecs_get_component(payz_top->ecs, &compbuf, &comptok,
-			  closure->entity, "lightningd:systems");
-
-	/* Create the new lightningd:systems.  */
-	js = new_json_stream(tmpctx, NULL, NULL);
-	json_object_start(js, NULL);
-	if (likely(comptok->type == JSMN_OBJECT)) {
-		/* Copy the keys from the current object, except for
-		 * an error field.  */
-		json_for_each_obj (i, key, comptok) {
-			value = key + 1;
-			/* Skip an existing "error" field.  */
-			if (json_tok_streq(compbuf, key, "error"))
-				continue;
-
-			json_add_tok(js, json_strdup(tmpctx, compbuf, key),
-				     value, compbuf);
-		}
-	}
-	/* Add the error.  */
-	json_add_tok(js, "error", result, buf);
-	json_object_end(js);
-
-	/* Set the value.  */
-	newcompbuf = json_out_contents(js->jout, &newcomplen);
-	ecs_set_component_datuml(payz_top->ecs,
-				 closure->entity, "lightningd:systems",
-				 newcompbuf, newcomplen);
+	payz_setsystems_tok(closure->entity, "error", buf, result);
 
 	return ecs_system_done(closure->plugin, payz_top->ecs);
 }
@@ -568,6 +529,7 @@ payecs_setdefaultsystems(struct command *cmd,
 	struct json_stream *js;
 	const char *newcompbuf;
 	size_t newcomplen;
+	jsmntok_t *newcomptok;
 
 	if (!param(cmd, buf, params,
 		   p_req("entity", &param_number, &entity),
@@ -590,21 +552,18 @@ payecs_setdefaultsystems(struct command *cmd,
 
 	/* Now create the new component.  */
 	js = new_json_stream(tmpctx, NULL, NULL);
-	json_object_start(js, NULL);
-	json_array_start(js, "systems");
+	json_array_start(js, NULL);
 	for (i = 0; i < tal_count(prepend); ++i)
 		json_add_string(js, NULL, prepend[i]);
 	json_splice_default_systems(js);
 	for (i = 0; i < tal_count(append); ++i)
 		json_add_string(js, NULL, append[i]);
 	json_array_end(js);
-	json_object_end(js);
 
 	/* Set the value.  */
 	newcompbuf = json_out_contents(js->jout, &newcomplen);
-	ecs_set_component_datuml(payz_top->ecs,
-				 (u32) *entity, "lightningd:systems",
-				 newcompbuf, newcomplen);
+	newcomptok = json_parse_simple(tmpctx, newcompbuf, newcomplen);
+	payz_setsystems_tok(*entity, "systems", newcompbuf, newcomptok);
 
 	/* Return empty object.  */
 	return command_success(cmd, json_out_obj(cmd, NULL, NULL));

@@ -27,7 +27,7 @@ int main(int argc, char **argv)
 				       PAYECS_SETCOMPONENTS_UNEXPECTED_COMPONENTS);
 	/* Check the conditional setcomponents did not change the entity.  */
 	payz_tester_command_expect("payecs_getcomponents",
-				   "[1, [\"component\"]]",
+				   "[1, \"component\"]",
 				   "{\"entity\": 1, \"component\": {\"x\": 1}}");
 
 	return 0;
