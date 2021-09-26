@@ -62,6 +62,10 @@ struct payz_tester_spawn *payz_tester_spawn_new(struct timerel timeout)
 		exit(status);
 	}
 
+	/* Close the child ends of the pipes.  */
+	close(pipe_stdin[0]);
+	close(pipe_stdout[1]);
+
 	/* *Now* construct the object.  */
 	spawn = tal(NULL, struct payz_tester_spawn);
 	spawn->child = pid;
@@ -128,6 +132,9 @@ static void payz_tester_spawn_destructor(struct payz_tester_spawn *spawn)
 			errx(1, "Child did not exit within timeout.");
 
 		pid = waitpid(spawn->child, &status, WNOHANG);
+		/* Ignore ECHILD errors.  */
+		if (pid < 0 && errno == ECHILD)
+			break;
 		if (pid < 0)
 			err(1, "waitpid(%d)", (int) spawn->child);
 		if (pid != 0) {
