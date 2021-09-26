@@ -78,7 +78,7 @@ static int payz_tester_spawn_child(int child_stdin, int child_stdout)
 	int dup2_res;
 
 	char argv0[5];
-	char *argv[1];
+	char *argv[2];
 
 	/* Redirect stdin and stdout.  */
 	do {
@@ -99,6 +99,7 @@ static int payz_tester_spawn_child(int child_stdin, int child_stdout)
 	/* Now call the plugin code.  */
 	strcpy(argv0, "payz");
 	argv[0] = argv0;
+	argv[1] = NULL;
 	return payz_main(1, argv, "payz", "keysendz");
 }
 
