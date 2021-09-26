@@ -125,6 +125,8 @@ PAY_SOURCES = \
 	plugins/payz/tester/rpc.h \
 	plugins/payz/tester/spawn.c \
 	plugins/payz/tester/spawn.h \
+	plugins/payz/tester/tester.c \
+	plugins/payz/tester/tester.h \
 	plugins/payz/top.c \
 	plugins/payz/top.h
 
