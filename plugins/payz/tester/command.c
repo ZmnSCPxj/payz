@@ -161,7 +161,7 @@ payz_tester_command_process(struct payz_tester_command *command,
 			     json_tok_full(buffer, toks));
 
 		error = json_scan(tmpctx, buffer, params,
-				  "{level: %, message: %}",
+				  "{level:%,message:%}",
 				  JSON_SCAN_TAL(tmpctx, json_strdup, &level),
 				  JSON_SCAN_TAL(tmpctx, json_strdup, &message));
 		if (error)

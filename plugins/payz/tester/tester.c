@@ -177,7 +177,7 @@ static bool wait_for_response(struct payz_tester *tester)
 
 	/* Check response, it should match the id.  */
 	error = json_scan(tmpctx, tester->buffer, tester->toks,
-			  "{id: %}",
+			  "{id:%}",
 			  JSON_SCAN(json_to_u64, &id));
 	if (!error && id != tester->id)
 		error = tal_fmt(tmpctx,

@@ -707,7 +707,7 @@ payz_tester_rpc_conn_process(struct payz_tester_rpc_conn *conn,
 	struct payz_tester_rpc_response *response;
 
 	error = json_scan(tmpctx, buffer, tok,
-			  "{method:%, id:%}",
+			  "{method:%,id:%}",
 			  JSON_SCAN_TAL(tmpctx, json_strdup, &method),
 			  JSON_SCAN(json_to_u64, &id));
 	if (error)

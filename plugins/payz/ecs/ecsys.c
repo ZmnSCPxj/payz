@@ -540,7 +540,7 @@ ecsys_err_wrap(struct plugin *plugin,
 	ecsys->get_component(ecsys->ec, &buffer, &tok,
 			     entity, "lightningd:systems");
 	err = json_scan(tmpctx, buffer, tok,
-			"{error: {message: % }}",
+			"{error:{message:%}}",
 			JSON_SCAN_TAL(tmpctx, json_strdup, &msg));
 	assert(!err);
 	(void)err;
