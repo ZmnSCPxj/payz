@@ -264,23 +264,16 @@ void payz_tester_command_expect(const char *method,
 {
 	bool ret;
 	const char *buffer;
-	const jsmntok_t *toks;
 	const jsmntok_t *result;
 	jsmntok_t *exptoks;
 
-	ret = payz_tester_command(&buffer, &toks, method, params);
+	ret = payz_tester_command(&buffer, &result, method, params);
 	if (!ret)
 		errx(1, "payz_tester_command_expect(%s, %s, %s): "
 		     "Command failed with: %.*s",
 		     method, params, expected,
-		     json_tok_full_len(toks), json_tok_full(buffer, toks));
-
-	result = json_get_member(buffer, toks, "result");
-	if (!result)
-		errx(1, "payz_tester_command_expect(%s, %s, %s): "
-		     "No 'result': %.*s",
-		     method, params, expected,
-		     json_tok_full_len(toks), json_tok_full(buffer, toks));
+		     json_tok_full_len(result),
+		     json_tok_full(buffer, result));
 
 	/* Parse expected.  */
 	exptoks = json_parse_simple(tmpctx, expected, strlen(expected));
