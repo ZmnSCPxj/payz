@@ -156,6 +156,7 @@ LDADD = libpayz.la
 
 AM_DEFAULT_SOURCE_EXT = .c
 TESTS = \
+	plugins/payz/tests/test_advance_fail \
 	plugins/payz/tests/test_setcomponents \
 	plugins/payz/tests/test_simple
 check_PROGRAMS = $(TESTS)
