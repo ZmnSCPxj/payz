@@ -4,10 +4,12 @@
 #include<ccan/compiler/compiler.h>
 #include<ccan/json_out/json_out.h>
 #include<ccan/likely/likely.h>
+#include<ccan/list/list.h>
 #include<ccan/str/str.h>
 #include<ccan/tal/str/str.h>
 #include<ccan/strmap/strmap.h>
 #include<ccan/take/take.h>
+#include<ccan/time/time.h>
 #include<common/json_stream.h>
 #include<common/json_tok.h>
 #include<common/jsonrpc_errors.h>
@@ -16,6 +18,7 @@
 #include<plugins/payz/parsing.h>
 #include<plugins/payz/setsystems.h>
 #include<plugins/payz/top.h>
+#include<time.h>
 
 /*-----------------------------------------------------------------------------
 Commands
@@ -37,6 +40,15 @@ static struct command_result *
 payecs_setdefaultsystems(struct command *cmd,
 			 const char *buf,
 			 const jsmntok_t *params);
+static struct command_result *
+payecs_systrace(struct command *cmd,
+		const char *buf,
+		const jsmntok_t *params);
+
+static void
+payecs_system_notification(struct command *cmd,
+			   const char *buf,
+			   const jsmntok_t *params);
 
 const struct plugin_command payecs_code_commands[] = {
 	{
@@ -68,11 +80,33 @@ const struct plugin_command payecs_code_commands[] = {
 		"Set the given {entity} to use the built-in systmes for "
 		"normal payment flow, optionally adding {prepend}ed and "
 		"{append}ed systems.",
-		"Set entity to use normal payment flow.",
+		"Set entity to use normal payment flow, possibly with "
+		"additional systems.",
 		&payecs_setdefaultsystems
+	},
+	{
+		"payecs_systrace",
+		"payment",
+		"Return a trace of systems that were triggered for a "
+		"specified {entity}.",
+		"Trace the systems that ran on the given entity.",
+		&payecs_systrace
 	}
 };
 const size_t num_payecs_code_commands = ARRAY_SIZE(payecs_code_commands);
+
+const struct plugin_notification payecs_code_notifications[] = {
+	{
+		ECS_SYSTEM_NOTIFICATION,
+		&payecs_system_notification
+	}
+};
+const size_t num_payecs_code_notifications = ARRAY_SIZE(payecs_code_notifications);
+
+const char *payecs_code_topics[] = {
+	ECS_SYSTEM_NOTIFICATION
+};
+const size_t num_payecs_code_topics = ARRAY_SIZE(payecs_code_topics);
 
 /*-----------------------------------------------------------------------------
 Registry of external systems
@@ -95,8 +129,6 @@ Registry of external systems
 struct payecs_external_system {
 	/* The name of the system.  */
 	const char *system;
-	/* The command to invoke.  */
-	const char *command;
 	/* The components required by the system.
 	 * We will pass in these components to the system (to
 	 * reduce RPC-call overhead for components the system
@@ -125,16 +157,11 @@ static void payecs_registry_init_if_needed(void)
 	payecs_registry_initialized = true;
 }
 
-static struct command_result *
-payecs_external_proxy(struct plugin *, struct ecs *, const char *system,
-		      u32 entity);
-
 /** payecs_register
  *
  * @brief Add an entry to the registry.
  *
  * @param system - the name of the system.
- * @param command - the name of the command.
  * @param required - an array of component names that are
  * required for this system to trigger.
  * @param disallowed - an array of component names that
@@ -147,7 +174,6 @@ payecs_external_proxy(struct plugin *, struct ecs *, const char *system,
  * are different.
  */
 static bool payecs_register(const char *system TAKES,
-			    const char *command TAKES,
 			    const char **required TAKES,
 			    const char **disallowed TAKES)
 {
@@ -176,8 +202,6 @@ static bool payecs_register(const char *system TAKES,
 		 * arguments, so free them if taken.  */
 		if (taken(system))
 			tal_free(system);
-		if (taken(command))
-			tal_free(command);
 		if (taken(required))
 			tal_free(required);
 		if (taken(disallowed))
@@ -185,7 +209,7 @@ static bool payecs_register(const char *system TAKES,
 
 		return ok;
 	}
-	
+
 	/* Then check the ECS for a system of the same name.
 	 * If there is one, then it is a builtin system.
 	 */
@@ -194,8 +218,6 @@ static bool payecs_register(const char *system TAKES,
 		 * Free taken arguments.  */
 		if (taken(system))
 			tal_free(system);
-		if (taken(command))
-			tal_free(command);
 		if (taken(required))
 			tal_free(required);
 		if (taken(disallowed))
@@ -207,7 +229,6 @@ static bool payecs_register(const char *system TAKES,
 	/* Create the entry.  */
 	exsys = tal(payz_top, struct payecs_external_system);
 	exsys->system = tal_strdup(exsys, system);
-	exsys->command = tal_strdup(exsys, command);
 	if (taken(required))
 		exsys->required = tal_steal(exsys, required);
 	else {
@@ -233,7 +254,6 @@ static bool payecs_register(const char *system TAKES,
 	/* Now hand it to the actual ECS.  */
 	reg = ecs_register_begin(tmpctx);
 	ecs_register_name(&reg, exsys->system);
-	ecs_register_func(&reg, &payecs_external_proxy);
 	for (i = 0; i < tal_count(exsys->required); ++i)
 		ecs_register_require(&reg, exsys->required[i]);
 	for (i = 0; i < tal_count(exsys->disallowed); ++i)
@@ -242,121 +262,6 @@ static bool payecs_register(const char *system TAKES,
 	ecs_register(payz_top->ecs, take(reg));
 
 	return true;
-}
-
-/*-----------------------------------------------------------------------------
-External Proxy
------------------------------------------------------------------------------*/
-
-/*~
- * This proxy connects our ECS to the external plugins that have
- * registered to add their own systems to the payecs framework.
- */
-
-struct payecs_external_proxy_closure {
-	struct plugin *plugin;
-	const char *system;
-	u32 entity;
-};
-
-static struct command_result *
-payecs_external_proxy_ok(struct command *command,
-			 const char *buf,
-			 const jsmntok_t *result,
-			 struct payecs_external_proxy_closure *closure);
-static struct command_result *
-payecs_external_proxy_ng(struct command *command,
-			 const char *buf,
-			 const jsmntok_t *result,
-			 struct payecs_external_proxy_closure *closure);
-
-static struct command_result *
-payecs_external_proxy(struct plugin *plugin,
-		      struct ecs *ecs,
-		      const char *system,
-		      u32 entity)
-{
-	struct payecs_external_system *exsys;
-
-	const char *compbuf;
-	const jsmntok_t *comptok;
-
-	struct out_req *req;
-	struct json_stream *js;
-
-	struct payecs_external_proxy_closure *closure;
-
-	size_t i;
-
-	/* Look it up.  */
-	exsys = strmap_get(&payecs_registry, system);
-	assert(exsys);
-
-	/* Create the closure.  */
-	closure = tal(plugin, struct payecs_external_proxy_closure);
-	closure->plugin = plugin;
-	closure->system = exsys->system;  /* Ensure storage is permanent.  */
-	closure->entity = entity;
-
-	/* Now generate the arguments to the external command.  */
-	req = jsonrpc_request_start(plugin, NULL,
-				    exsys->command,
-				    &payecs_external_proxy_ok,
-				    &payecs_external_proxy_ng,
-				    closure);
-	js = req->js;
-	/* Pass the system name.
-	 *
-	 * Plugins might want to register multiple systems for
-	 * code organization, but want to expose only one command
-	 * for systems.
-	 * This allows such plugins to branch in a single command
-	 * based on the actual system being invoked.
-	 */
-	json_add_string(js, "system", system);
-
-	json_object_start(js, "entity");
-	json_add_u32(js, "entity", entity);
-	/* As a convenience to the system, so it does not have to
-	 * go through the overhead of JSONRPC processing to get
-	 * the data it needs, also pass in the required components.
-	 */
-	for (i = 0; i < tal_count(exsys->required); ++i) {
-		ecs_get_component(payz_top->ecs, &compbuf, &comptok,
-				  entity, exsys->required[i]);
-		json_add_tok(js, exsys->required[i],
-			     comptok, compbuf);
-	}
-	json_object_end(js);
-
-	return send_outreq(plugin, req);
-}
-
-static struct command_result *
-payecs_external_proxy_ok(struct command *command,
-			 const char *buf,
-			 const jsmntok_t *result,
-			 struct payecs_external_proxy_closure *closure)
-{
-	/* Success, do nothing.  */
-	tal_steal(tmpctx, closure);
-	return ecs_system_done(closure->plugin, payz_top->ecs);
-}
-
-static struct command_result *
-payecs_external_proxy_ng(struct command *command,
-			 const char *buf,
-			 const jsmntok_t *result,
-			 struct payecs_external_proxy_closure *closure)
-{
-	/* Command failed, update the `lightningd:systems` component
-	 * and add the error.
-	 */
-	tal_steal(tmpctx, closure);
-
-	payz_setsystems_tok(closure->entity, "error", buf, result);
-
-	return ecs_system_done(closure->plugin, payz_top->ecs);
 }
 
 /*-----------------------------------------------------------------------------
@@ -369,13 +274,11 @@ payecs_newsystem(struct command *cmd,
 		 const jsmntok_t *params)
 {
 	const char *system;
-	const char *command;
 	const char **required;
 	const char **disallowed;
 
 	if (!param(cmd, buf, params,
 		   p_req("system", &param_string, &system),
-		   p_req("command", &param_string, &command),
 		   p_req("required", &param_array_of_strings,
 			 &required),
 		   p_opt("disallowed", &param_array_of_strings,
@@ -383,8 +286,7 @@ payecs_newsystem(struct command *cmd,
 		   NULL))
 		return command_param_failed();
 
-	if (!payecs_register(system, take(command),
-			     take(required), take(disallowed)))
+	if (!payecs_register(system, take(required), take(disallowed)))
 		return command_fail(cmd, JSONRPC2_INVALID_PARAMS,
 				    "Conflict with existing `system`: %s",
 				    system);
@@ -567,4 +469,150 @@ payecs_setdefaultsystems(struct command *cmd,
 
 	/* Return empty object.  */
 	return command_success(cmd, json_out_obj(cmd, NULL, NULL));
+}
+
+/*-----------------------------------------------------------------------------
+Systrace
+-----------------------------------------------------------------------------*/
+
+/*~ The systrace facility allows plugin developers to have a view of
+ * the operations of the payment system by tracing what systems were
+ * triggered on entities.
+ *
+ * This is just a trace of the most recent `payecs_system_invoke`
+ * notifications, recording the `params` given.
+ */
+
+/** struct payecs_systrace_entry
+ *
+ * @brief Represents an entry into the global systrace entry.
+ */
+struct payecs_systrace_entry {
+	struct list_node list;
+
+	/** The time this entry was added.  */
+	struct timeabs time;
+
+	/** The entity this was triggered on.  */
+	u32 entity;
+
+	/** The entire JSON 'params' we got from the RPC notification.  */
+	char *json;
+	/** Length of above text.  */
+	int json_len;
+};
+
+/** payecs_systraces_remaining
+ *
+ * @brief The number of systraces we will accept until we start
+ * removing old entries.
+ */
+static size_t payecs_systraces_remaining = 100000;
+/** systraces
+ *
+ * @brief The actual list of systraces.
+ */
+static LIST_HEAD(payecs_systraces);
+
+static void payecs_systrace_add(struct plugin *plugin,
+				const char *buf,
+				const jsmntok_t *params)
+{
+	struct payecs_systrace_entry *entry;
+
+	u32 entity;
+
+	const char *error;
+
+	/* Check if we can get the entity ID.  */
+	error = json_scan(tmpctx, buf, params,
+			  "{entity:{entity:%}}",
+			  JSON_SCAN(json_to_u32, &entity));
+	if (error) {
+		plugin_log(plugin, LOG_UNUSUAL,
+			   "Invalid '%s' parameters: %s",
+			   ECS_SYSTEM_NOTIFICATION, error);
+		return;
+	}
+
+	/* If the list is too long already, erase old entries.  */
+	if (payecs_systraces_remaining == 0) {
+		tal_free(list_pop(&payecs_systraces,
+				  struct payecs_systrace_entry,
+				  list));
+		++payecs_systraces_remaining;
+	}
+
+	entry = tal(payz_top, struct payecs_systrace_entry);
+	entry->time = time_now();
+	entry->entity = entity;
+	entry->json = tal_dup_arr(entry, char,
+				  json_tok_full(buf, params),
+				  json_tok_full_len(params), 0);
+	entry->json_len = json_tok_full_len(params);
+	list_add_tail(&payecs_systraces, &entry->list);
+	--payecs_systraces_remaining;
+}
+
+static char *format_time(const tal_t *ctx, struct timeabs time);
+
+static struct command_result *
+payecs_systrace(struct command *cmd,
+		const char *buf,
+		const jsmntok_t *params)
+{
+	unsigned int *entity;
+
+	struct json_stream *out;
+	struct payecs_systrace_entry *entry;
+
+	if (!param(cmd, buf, params,
+		   p_req("entity", &param_number, &entity),
+		   NULL))
+		return command_param_failed();
+
+	out = jsonrpc_stream_success(cmd);
+	json_add_u32(out, "entity", (u32) *entity);
+	json_array_start(out, "trace");
+	list_for_each (&payecs_systraces, entry, list) {
+		if (entry->entity != *entity)
+			continue;
+		json_object_start(out, NULL);
+		json_add_string(out, "time",
+				format_time(tmpctx, entry->time));
+		json_add_literal(out, "params",
+				 entry->json, entry->json_len);
+		json_object_end(out);
+	}
+	json_array_end(out);
+	return command_finished(cmd, out);
+}
+
+static char *format_time(const tal_t *ctx, struct timeabs time)
+{
+	char iso8601[sizeof("YYYY-mm-ddTHH:MM:SS")];
+
+	strftime(iso8601, sizeof(iso8601),
+		 "%FT%T", gmtime(&time.ts.tv_sec));
+	return tal_fmt(ctx, "%s.%03dZ",
+		       iso8601,
+		       (int) time.ts.tv_nsec / 1000000);
+}
+
+/*-----------------------------------------------------------------------------
+ECS System Trigger Notification
+-----------------------------------------------------------------------------*/
+
+static void
+payecs_system_notification(struct command *cmd,
+			   const char *buf,
+			   const jsmntok_t *params)
+{
+	plugin_log(cmd->plugin, LOG_DBG,
+		   "%s parameters: %.*s",
+		   ECS_SYSTEM_NOTIFICATION,
+		   json_tok_full_len(params),
+		   json_tok_full(buf, params));
+	payecs_systrace_add(cmd->plugin, buf, params);
+	ecs_system_notify(payz_top->ecs, cmd, buf, params);
 }

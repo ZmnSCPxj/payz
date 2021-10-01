@@ -3,9 +3,11 @@
 #include<ccan/json_out/json_out.h>
 #include<ccan/strmap/strmap.h>
 #include<ccan/tal/str/str.h>
+#include<common/json_stream.h>
 #include<common/status_levels.h>
 #include<common/utils.h>
 #include<errno.h>
+#include<plugins/libplugin.h>
 #include<plugins/payz/parsing.h>
 #include<plugins/payz/setsystems.h>
 #include<stdarg.h>
@@ -22,11 +24,6 @@ struct ecsys_registered {
 	const char *system;
 	char **requiredComponents;
 	char **disallowedComponents;
-	struct command_result *(*code)(struct plugin *plugin,
-				       struct ecsys *ecsys,
-				       u32 entity,
-				       void *arg);
-	void *arg;
 };
 
 struct ecsys {
@@ -43,11 +40,10 @@ struct ecsys {
 			      const char *,
 			      const jsmntok_t *);
 	void *ec;
-	void *(*plugin_timer)(struct plugin *,
-			      struct timerel,
-			      void (*)(void*),
-			      void *);
-	struct command_result *(*timer_complete)(struct plugin *);
+	void (*plugin_notification)(struct plugin *,
+				    const char *method,
+				    const char *buffer,
+				    const jsmntok_t *tok);
 	void (*plugin_log)(struct plugin *,
 			   enum log_level,
 			   const char *);
@@ -70,11 +66,10 @@ struct ecsys *ecsys_new_(const tal_t *ctx,
 					       const char *buffer,
 					       const jsmntok_t *tok),
 			 void *ec,
-			 void *(*plugin_timer)(struct plugin *,
-					       struct timerel t,
-					       void (*cb)(void*),
-					       void *cb_arg),
-			 struct command_result *(*timer_complete)(struct plugin *),
+			 void (*plugin_notification)(struct plugin *,
+				 		     const char *method,
+						     const char *buffer,
+						     const jsmntok_t *tok),
 			 void (*plugin_log)(struct plugin *,
 					    enum log_level,
 					    const char *))
@@ -85,8 +80,7 @@ struct ecsys *ecsys_new_(const tal_t *ctx,
 	ecsys->get_component = get_component;
 	ecsys->set_component = set_component;
 	ecsys->ec = ec;
-	ecsys->plugin_timer = plugin_timer;
-	ecsys->timer_complete = timer_complete;
+	ecsys->plugin_notification = plugin_notification;
 	ecsys->plugin_log = plugin_log;
 
 	tal_add_destructor(ecsys, &ecsys_destroy);
@@ -105,17 +99,12 @@ static void ecsys_destroy(struct ecsys *ecsys)
 Registration
 -----------------------------------------------------------------------------*/
 
-void ecsys_register_(struct ecsys *ecsys,
-		     const char *system,
-		     const char *const *requiredComponents,
-		     size_t numRequiredComponents,
-		     const char *const *disallowedComponents,
-		     size_t numDisallowedComponents,
-		     struct command_result *(*code)(struct plugin *plugin,
-						    struct ecsys *ecsys,
-						    u32 entity,
-						    void *arg),
-		     void *arg)
+void ecsys_register(struct ecsys *ecsys,
+		    const char *system,
+		    const char *const *requiredComponents,
+		    size_t numRequiredComponents,
+		    const char *const *disallowedComponents,
+		    size_t numDisallowedComponents)
 {
 	struct ecsys_registered *sys;
 	size_t i;
@@ -137,22 +126,10 @@ void ecsys_register_(struct ecsys *ecsys,
 	for (i = 0; i < numDisallowedComponents; ++i)
 		sys->disallowedComponents[i] =
 			tal_strdup(sys, disallowedComponents[i]);
-	sys->code = code;
-	sys->arg = arg;
 
 	errno = 0;
 	strmap_add(&ecsys->system_map, sys->system, sys);
 	assert(errno != EEXIST);
-}
-
-/*-----------------------------------------------------------------------------
-Done
------------------------------------------------------------------------------*/
-
-struct command_result *ecsys_system_done(struct plugin *plugin,
-					 struct ecsys *ecsys)
-{
-	return ecsys->timer_complete(plugin);
 }
 
 /*-----------------------------------------------------------------------------
@@ -194,6 +171,7 @@ struct command_result *ecsys_advance_(struct plugin *plugin,
 {
 	const char **systems;
 	size_t nsystems;
+	unsigned int current;
 	unsigned int next;
 
 	unsigned int i;
@@ -220,9 +198,11 @@ struct command_result *ecsys_advance_(struct plugin *plugin,
 	nsystems = tal_count(systems);
 
 	found = payz_generic_getsystems(ecsys->get_component, ecsys->ec,
-					entity, "next",
-					&json_to_number, &next);
-	if (!found)
+					entity, "current",
+					&json_to_number, &current);
+	if (found)
+		next = current + 1;
+	else
 		next = 0;
 
 	/* Search for matching system.  */
@@ -253,13 +233,13 @@ struct command_result *ecsys_advance_(struct plugin *plugin,
 					   "No systems match, cannot advance.");
 
 	/* Update component.  */
-	next = (index + 1) % nsystems;
-	buffer = tal_fmt(tmpctx, "%u", next);
+	current = index;
+	buffer = tal_fmt(tmpctx, "%u", current);
 	toks = json_parse_simple(tmpctx, buffer, strlen(buffer));
 	payz_generic_setsystems_tok(ecsys->get_component,
 				    ecsys->set_component,
 				    ecsys->ec,
-				    entity, "next",
+				    entity, "current",
 				    buffer, toks);
 
 	/* Trigger execution.  */
@@ -300,41 +280,48 @@ static bool system_matches(const struct ecsys *ecsys,
 
 	return true;
 }
-struct ecsys_run_system {
-	struct plugin *plugin;
-	struct ecsys *ecsys;
-	struct ecsys_registered *system;
-	u32 entity;
-};
-static void run_system_cb(void *vinfo);
+
 static void run_system(struct plugin *plugin,
 		       struct ecsys *ecsys,
 		       u32 entity,
 		       struct ecsys_registered *system)
 {
-	struct ecsys_run_system *info;
+	struct json_stream *js;
 
-	info = tal(plugin, struct ecsys_run_system);
-	info->plugin = plugin;
-	info->ecsys = ecsys;
-	info->system = system;
-	info->entity = entity;
+	const char *paramsbuf;
+	size_t paramsbuflen;
+	jsmntok_t *paramstok;
+	unsigned int i;
 
-	(void) ecsys->plugin_timer(plugin, time_from_sec(0),
-				   &run_system_cb, (void *) info);
-}
-static void run_system_cb(void *vinfo)
-{
-	struct ecsys_run_system *info;
-	info = (struct ecsys_run_system *) vinfo;
+	/* Construct params.  */
+	js = new_json_stream(tmpctx, NULL, NULL);
+	json_object_start(js, NULL);
+	json_add_string(js, "system", system->system);
 
-	struct plugin *plugin = info->plugin;
-	struct ecsys *ecsys = info->ecsys;
-	struct ecsys_registered *system = info->system;
-	u32 entity = info->entity;
-	tal_free(info);
+	/* Construct entity, pass in the components that are
+	 * required by the system.
+	 */
+	json_object_start(js, "entity");
+	json_add_u32(js, "entity", entity);
+	for (i = 0; i < tal_count(system->requiredComponents); ++i) {
+		const char *component = system->requiredComponents[i];
+		const char *cmpbuf;
+		const jsmntok_t *cmptok;
 
-	(void) system->code(plugin, ecsys, entity, system->arg);
+		(void) ecsys->get_component(ecsys->ec,
+					    &cmpbuf, &cmptok,
+					    entity, component);
+		json_add_tok(js, component, cmptok, cmpbuf);
+	}
+	json_object_end(js);
+
+	json_object_end(js);
+
+	/* Parse the parameters and give to notification.  */
+	paramsbuf = json_out_contents(js->jout, &paramsbuflen);
+	paramstok = json_parse_simple(tmpctx, paramsbuf, paramsbuflen);
+	ecsys->plugin_notification(plugin, ECSYS_SYSTEM_NOTIFICATION,
+				   paramsbuf, paramstok);
 }
 
 static struct command_result *
@@ -403,16 +390,16 @@ ecsys_err_wrap(struct plugin *plugin,
 	       errcode_t err,
 	       struct ecsys_advance_done_info *inf);
 
-struct command_result *ecsys_advance_done(struct plugin *plugin,
-					  struct ecsys *ecsys,
-					  u32 entity)
+void ecsys_advance_done(struct plugin *plugin,
+			struct ecsys *ecsys,
+			u32 entity)
 {
 	struct ecsys_advance_done_info *inf;
 
 	inf = tal(ecsys, struct ecsys_advance_done_info);
 	inf->entity = entity;
 
-	return ecsys_advance(plugin, ecsys, entity,
+	(void) ecsys_advance(plugin, ecsys, entity,
 			     &ecsys_done_wrap,
 			     &ecsys_err_wrap,
 			     inf);
@@ -423,7 +410,7 @@ ecsys_done_wrap(struct plugin *plugin,
 		struct ecsys_advance_done_info *inf)
 {
 	tal_free(inf);
-	return ecsys_system_done(plugin, ecsys);
+	return command_still_pending(NULL);
 }
 static struct command_result *
 ecsys_err_wrap(struct plugin *plugin,

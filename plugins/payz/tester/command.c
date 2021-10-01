@@ -4,6 +4,7 @@
 #include<ccan/tal/str/str.h>
 #include<common/utils.h>
 #include<errno.h>
+#include<plugins/payz/ecs/ecs.h>
 #include<poll.h>
 #include<stdio.h>
 #include<unistd.h>
@@ -30,6 +31,9 @@ struct payz_tester_command_qentry {
 	char *buffer;
 	jsmntok_t *toks;
 };
+
+static void write_timed(int fd, const void *vbuffer, size_t len,
+			struct timemono start, struct timerel timeout);
 
 /*-----------------------------------------------------------------------------
 Construction
@@ -171,6 +175,18 @@ payz_tester_command_process(struct payz_tester_command *command,
 
 		return;
 	}
+	/* Reflect payecs_system_trigger notifications back to the
+	 * plugin.
+	 */
+	if (is_notif && json_tok_streq(buffer, method,
+				       ECS_SYSTEM_NOTIFICATION))
+		write_timed(command->to_stdin,
+			    json_tok_full(buffer, toks),
+			    json_tok_full_len(toks),
+			    time_mono(), command->timeout);
+		/* Do not return, let it be added to notifications
+		 * list.
+		 */
 
 	qe = tal(command, struct payz_tester_command_qentry);
 	qe->buffer = tal_strndup(qe, buffer, toks[0].end);
@@ -238,10 +254,6 @@ void payz_tester_command_send(struct payz_tester_command *command,
 {
 	char *request;
 	size_t nrequest;
-	ssize_t nwrite;
-
-	struct pollfd pfd;
-	int poll_res;
 
 	request = tal_fmt(tmpctx,
 			  "{\"jsonrpc\": \"2.0\", \"id\": %"PRIu64", "
@@ -249,30 +261,45 @@ void payz_tester_command_send(struct payz_tester_command *command,
 			  id, method, params);
 	nrequest = strlen(request);
 
-	while (nrequest > 0) {
+	write_timed(command->to_stdin, request, nrequest,
+		    time_mono(), command->timeout);
+}
+
+/*-----------------------------------------------------------------------------
+Timed Write
+-----------------------------------------------------------------------------*/
+
+static void write_timed(int fd, const void *vbuffer, size_t len,
+			struct timemono start, struct timerel timeout)
+{
+	const char *buffer = (const char *) vbuffer;
+	ssize_t nwrite;
+
+	struct pollfd pfd;
+	int poll_res;
+
+	while (len > 0) {
 		/* Have we timed out?  */
-		if (time_greater(timemono_since(start), command->timeout))
-			errx(1, "Write to plugin stdin timed out.");
+		if (time_greater(timemono_since(start), timeout))
+			errx(1, "plugin stdin: Timed out.");
 
 		/* Poll for 20 milliseconds.  */
-		pfd.fd = command->to_stdin;
+		pfd.fd = fd;
 		pfd.events = POLLOUT;
 		poll_res = poll(&pfd, 1, 20);
 		if (poll_res < 0 && errno != EINTR)
-			err(1, "plugin stdin: poll (%d)",
-			    command->to_stdin);
-		/* Can we write?  */
+			err(1, "plugin stdin: poll(%d)", fd);
+		/* Can we write?*/
 		if (poll_res <= 0)
 			continue;
 
-		nwrite = write(command->to_stdin, request, nrequest);
+		nwrite = write(fd, buffer, len);
 		if (nwrite < 0 && errno != EINTR)
-			err(1, "plugin stdin: write(%d)",
-			    command->to_stdin);
+			err(1, "plugin stdin: write(%d)", fd);
 		if (nwrite > 0) {
-			assert(nwrite <= nrequest);
-			request += nwrite;
-			nrequest -= nwrite;
+			assert(nwrite <= len);
+			buffer += nwrite;
+			len -= nwrite;
 		}
 	}
 }

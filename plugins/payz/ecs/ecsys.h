@@ -3,7 +3,6 @@
 #include"config.h"
 #include<ccan/short_types/short_types.h>
 #include<ccan/tal/tal.h>
-#include<ccan/time/time.h>
 #include<ccan/typesafe_cb/typesafe_cb.h>
 #include<common/errcode.h>
 #include<common/json.h>
@@ -25,7 +24,8 @@ struct ecsys;
  *
  * @desc This function accepts some API functions as arguments.
  * This allows this handler to be tested independently of its
- * dependencies (the plugin timer code, the EC table object, etc).
+ * dependencies (the plugin notification code, the EC table
+ * object, etc).
  * This is an application of the dependency inversion principle.
  *
  * @param ctx - the owner of this system handler.
@@ -35,9 +35,8 @@ struct ecsys;
  * on the EC table.
  * @param ec - the object to pass as first argument to the above
  * functions.
- * @param plugin_timer - the function to call to add a new timer.
- * @param timer_complete - the function to call to complete
- * execution of a timer.
+ * @param plugin_notification - the function to call to emit a
+ * notification.
  * @param plugin_log - the function to print a log message.
  */
 struct ecsys *ecsys_new_(const tal_t *ctx,
@@ -52,15 +51,14 @@ struct ecsys *ecsys_new_(const tal_t *ctx,
 					       const char *buffer,
 					       const jsmntok_t *tok),
 			 void *ec,
-			 void *(*plugin_timer)(struct plugin *,
-					       struct timerel t,
-					       void (*cb)(void*),
-					       void *cb_arg),
-			 struct command_result *(*timer_complete)(struct plugin *),
+			 void (*plugin_notification)(struct plugin *,
+				 		     const char *method,
+						     const char *buffer,
+						     const jsmntok_t *tok),
 			 void (*plugin_log)(struct plugin *,
 					    enum log_level,
 					    const char *));
-#define ecsys_new(ctx, getc, setc, ec, timer, tcomp, log) \
+#define ecsys_new(ctx, getc, setc, ec, notif, log) \
 	ecsys_new_((ctx), \
 		   typesafe_cb_postargs(void, const void *, (getc), (ec), \
 					const char **, \
@@ -72,7 +70,7 @@ struct ecsys *ecsys_new_(const tal_t *ctx,
 					const char *, \
 					const char *, \
 					const jsmntok_t *), \
-		   (ec), (timer), (tcomp), (log))
+		   (ec), (notif), (log))
 
 /** ecsys_register
  *
@@ -99,44 +97,13 @@ struct ecsys *ecsys_new_(const tal_t *ctx,
  * May be NULL to indicate no disallowed components.
  * @param numDisallowedComponents - the length of the above
  * array.
- * @param code - the function to invoke when this system is
- * matched.
- * It is passed the plugin and the system handler.
- * It is also provided the entity number being triggered.
- * @param arg - the argument to pass to the above function.
  */
-void ecsys_register_(struct ecsys *ecsys,
-		     const char *system,
-		     const char *const *requiredComponents,
-		     size_t numRequiredComponents,
-		     const char *const *disallowedComponents,
-		     size_t numDisallowedComponents,
-		     struct command_result *(*code)(struct plugin *plugin,
-						    struct ecsys *ecsys,
-						    u32 entity,
-						    void *arg),
-		     void *arg);
-#define ecsys_register(ecsys_o, sys, req, nreq, dis, ndis, code, arg) \
-	ecsys_register_((ecsys_o), (sys), (req), (nreq), (dis), (ndis), \
-			typesafe_cb_preargs(struct command_result *,\
-					    void *, (code), (arg), \
-					    struct plugin *, \
-					    struct ecsys *, \
-					    u32), \
-			(arg))
-
-/** ecsys_system_done
- *
- * @brief Signals that a system has completed execution.
- *
- * @param plugin - the plugin passed to the system code.
- * @param ecsys - the system handler passed to the system code.
- *
- * @return Return this from the system code to signal that the
- * system has completed execution.
- */
-struct command_result *ecsys_system_done(struct plugin *plugin,
-					 struct ecsys *ecsys);
+void ecsys_register(struct ecsys *ecsys,
+		    const char *system,
+		    const char *const *requiredComponents,
+		    size_t numRequiredComponents,
+		    const char *const *disallowedComponents,
+		    size_t numDisallowedComponents);
 
 /** ecsys_advance
  *
@@ -195,9 +162,9 @@ struct command_result *ecsys_advance_(struct plugin *plugin,
  * want to have to handle failure of advance.
  * Failures are printed as error-level logs.
  */
-struct command_result *ecsys_advance_done(struct plugin *plugin,
-					  struct ecsys *ecsys,
-					  u32 entity);
+void ecsys_advance_done(struct plugin *plugin,
+			struct ecsys *ecsys,
+			u32 entity);
 
 /** ecsys_system_exists
  *
@@ -214,10 +181,12 @@ bool ecsys_system_exists(const struct ecsys *ecsys,
 			 const char *system);
 
 /* The `lightningd:systems` component is not attached, or
- * does not have a valid `systems` field or a valid `next`
+ * does not have a valid `systems` field or a valid `current`
  * field, or one of the listed `systems` is not registered.  */
 static const errcode_t PAY_ECS_INVALID_SYSTEMS_COMPONENT = 2200;
 /* None of the systems listed matched.  */
 static const errcode_t PAY_ECS_NOT_ADVANCEABLE = 2201;
+
+#define ECSYS_SYSTEM_NOTIFICATION "payecs_system_invoke"
 
 #endif /* LIGHTNING_PLUGINS_PAYZ_ECS_ECSYS_H */

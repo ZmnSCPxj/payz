@@ -6,9 +6,11 @@
 #include<ccan/tal/tal.h>
 #include<ccan/typesafe_cb/typesafe_cb.h>
 #include<common/json.h>
+#include<plugins/payz/ecs/ecsys.h>
 #include<stdbool.h>
 #include<stddef.h>
 
+struct command;
 struct command_result;
 struct plugin;
 
@@ -162,13 +164,6 @@ void ecs_set_component_datum(struct ecs *ecs,
 			     const char *component,
 			     const char *valuez);
 
-/** ecs_system_done
- *
- * @brief Signals that a system has completed execution.
- */
-struct command_result *ecs_system_done(struct plugin *plugin,
-				       struct ecs *ecs);
-
 /** ecs_advance
  *
  * @brief Advances processing of the specified entity, triggering
@@ -214,9 +209,9 @@ struct command_result *ecs_advance_(struct plugin *plugin,
  * @desc Our expectation is that the supermajority of systems
  * will, at the end of their processing, simply terminate.
  */
-struct command_result *ecs_advance_done(struct plugin *plugin,
-					struct ecs *ecs,
-					u32 entity);
+void ecs_advance_done(struct plugin *plugin,
+		      struct ecs *ecs,
+		      u32 entity);
 
 /** ecs_system_exists
  *
@@ -232,6 +227,28 @@ struct command_result *ecs_advance_done(struct plugin *plugin,
 bool ecs_system_exists(const struct ecs *ecs,
 		       const char *system);
 
+/** ecs_system_notify
+ *
+ * @brief Call the actual system code if a function was
+ * provided during registration.
+ * Otherwise if the system has no function provided
+ * during registration, do nothing.
+ *
+ * @desc This is intended to be called from the handler
+ * of the payecs_system_trigger notification.
+ *
+ * @param ecs - the ECS framework to trigger.
+ * @param command - the command argument passed into the
+ * plugin notification handler.
+ * @param buffer - the buffer for JSON parameters.
+ * @param params - the JSMN token for parameters of the
+ * system triggering notification.
+ */
+void ecs_system_notify(struct ecs *ecs,
+		       struct command *command,
+		       const char *buffer,
+		       const jsmntok_t *params);
+
 /*-----------------------------------------------------------------------------
 System Registration
 -----------------------------------------------------------------------------*/
@@ -239,14 +256,14 @@ System Registration
 /*
 To use:
 
-struct command_result *system_name_code(struct plugin *,
-					struct ecs *,
-					const char *system,
-					u32 entity);
-struct command_result *other_system_name_code(struct plugin *,
-					      struct ecs *,
-					      const char *system,
-					      u32 entity);
+void system_name_code(struct ecs *,
+		      struct command *,
+		      const char *buffer,
+		      const jsmntok_t *entity);
+void other_system_name_code(struct ecs *,
+			    struct command *,
+			    const char *buffer,
+			    const jsmntok_t *entity);
 
 const struct ecs_register_desc desc[] = {
 	ECS_REGISTER_NAME("system-name"),
@@ -283,9 +300,13 @@ struct ecs_register_desc {
 	const void *pointer;
 };
 
+/* The entity given is an object, with a field "entity" with a numeric
+ * entity id, and the rest of the fields being components that were
+ * registered as required.
+ */
 typedef
-struct command_result *
-(*ecs_system_function)(struct plugin*, struct ecs *, const char *system, u32);
+void (*ecs_system_function)(struct ecs *, struct command *,
+			    const char *buffer, const jsmntok_t *entity);
 
 #define ECS_REGISTER_NAME(name) \
 	{ ECS_REGISTER_TYPE_NAME, \
@@ -366,5 +387,7 @@ void ecs_register_require(struct ecs_register_desc **parray,
 void ecs_register_disallow(struct ecs_register_desc **parray,
 			   const char *component TAKES);
 void ecs_register_done(struct ecs_register_desc **parray);
+
+#define ECS_SYSTEM_NOTIFICATION ECSYS_SYSTEM_NOTIFICATION
 
 #endif /* LIGHTNING_PLUGINS_PAYZ_ECS_ECS_H */

@@ -46,9 +46,17 @@ void setup_payz_top(const char *pay_command,
 
 	ecs_register(payz_top->ecs, take(to_register));
 
-	payz_top->notifications = NULL; /* TODO.  */
+	payz_top->notifications = tal_arr(payz_top,
+					  struct plugin_notification,
+					  0);
+	tal_expand(&payz_top->notifications,
+		   payecs_code_notifications, num_payecs_code_notifications);
+
 	payz_top->hooks = NULL; /* TODO.  */
-	payz_top->notif_topics = NULL; /* TODO.  */
+
+	payz_top->notif_topics = tal_arr(payz_top, const char *, 0);
+	tal_expand(&payz_top->notif_topics,
+		   payecs_code_topics, num_payecs_code_topics);
 }
 
 void shutdown_payz_top(void)

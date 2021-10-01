@@ -12,4 +12,10 @@
 extern const struct plugin_command payecs_code_commands[];
 extern const size_t num_payecs_code_commands;
 
+extern const struct plugin_notification payecs_code_notifications[];
+extern const size_t num_payecs_code_notifications;
+
+extern const char *payecs_code_topics[];
+extern const size_t num_payecs_code_topics;
+
 #endif /* LIGHTNING_PLUGINS_PAYZ_PAYECS_CODE_H */

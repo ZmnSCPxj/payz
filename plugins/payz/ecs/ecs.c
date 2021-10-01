@@ -2,6 +2,7 @@
 #include<assert.h>
 #include<ccan/compiler/compiler.h>
 #include<ccan/likely/likely.h>
+#include<ccan/strmap/strmap.h>
 #include<ccan/tal/str/str.h>
 #include<common/status_levels.h>
 #include<common/utils.h>
@@ -13,35 +14,47 @@
 ECS Object Construction
 -----------------------------------------------------------------------------*/
 
+
+struct ecs_system_wrapper {
+	char *name;
+	ecs_system_function func;
+};
+
 struct ecs {
 	struct ec *ec;
 	struct ecsys *ecsys;
+	STRMAP(struct ecs_system_wrapper *) system_funcs;
 };
 
 static void wrapped_plugin_log(struct plugin *plugin,
 			       enum log_level level,
 			       const char *msg);
-static void *wrapped_plugin_timer(struct plugin *plugin,
-				  struct timerel t,
-				  void (*cb)(void *cb_arg),
-				  void *cb_arg);
 static bool wrapped_get_component(const void *ec,
 				  const char **buffer,
 				  const jsmntok_t **toks,
 				  u32 entity,
 				  const char *component);
+static void plugin_notification_func(struct plugin *plugin,
+				     const char *method,
+				     const char *buffer,
+				     const jsmntok_t *tok);
+
+static void ecs_destructor(struct ecs *ecs);
 
 struct ecs *ecs_new(const tal_t *ctx)
 {
 	struct ecs *ecs = tal(ctx, struct ecs);
+
 	ecs->ec = ec_new(ecs);
 	ecs->ecsys = ecsys_new(ecs,
 			       &wrapped_get_component,
 			       &ec_set_component,
 			       ecs->ec,
-			       &wrapped_plugin_timer,
-			       &timer_complete,
+			       &plugin_notification_func,
 			       &wrapped_plugin_log);
+	strmap_init(&ecs->system_funcs);
+	tal_add_destructor(ecs, &ecs_destructor);
+
 	return ecs;
 }
 
@@ -52,14 +65,6 @@ static void wrapped_plugin_log(struct plugin *plugin,
 	plugin_log(plugin, level, "%s", msg);
 }
 
-static void *wrapped_plugin_timer(struct plugin *plugin,
-				  struct timerel t,
-				  void (*cb)(void *cb_arg),
-				  void *cb_arg)
-{
-	return (void *) plugin_timer(plugin, t, cb, cb_arg);
-}
-
 static bool wrapped_get_component(const void *ec,
 				  const char **buffer,
 				  const jsmntok_t **toks,
@@ -67,6 +72,22 @@ static bool wrapped_get_component(const void *ec,
 				  const char *component)
 {
 	return ec_get_component(ec, buffer, toks, entity, component);
+}
+
+static void plugin_notification_func(struct plugin *plugin,
+				     const char *method,
+				     const char *buffer,
+				     const jsmntok_t *tok)
+{
+	struct json_stream *js = plugin_notification_start(plugin, method);
+	json_add_tok(js, NULL, tok, buffer);
+	plugin_notification_end(plugin, take(js));
+}
+
+static void ecs_destructor(struct ecs *ecs)
+{
+	/* Clean up strmap, it uses malloc.  */
+	strmap_clear(&ecs->system_funcs);
 }
 
 /*-----------------------------------------------------------------------------
@@ -132,12 +153,6 @@ void ecs_set_component_datum(struct ecs *ecs,
 /*-----------------------------------------------------------------------------
 Delegation to ECSYS
 -----------------------------------------------------------------------------*/
-
-struct command_result *ecs_system_done(struct plugin *plugin,
-				       struct ecs *ecs)
-{
-	return ecsys_system_done(plugin, ecs->ecsys);
-}
 
 struct ecs_advance_wrapper {
 	struct ecs *ecs;
@@ -208,17 +223,68 @@ ecs_advance_wrapper_errcb(struct plugin *plugin,
 	return wrapper->errcb(plugin, wrapper->ecs, error, wrapper->cbarg);
 }
 
-struct command_result *ecs_advance_done(struct plugin *plugin,
-					struct ecs *ecs,
-					u32 entity)
+void ecs_advance_done(struct plugin *plugin,
+		      struct ecs *ecs,
+		      u32 entity)
 {
-	return ecsys_advance_done(plugin, ecs->ecsys, entity);
+	ecsys_advance_done(plugin, ecs->ecsys, entity);
 }
 
 bool ecs_system_exists(const struct ecs *ecs,
 		       const char *system)
 {
 	return ecsys_system_exists(ecs->ecsys, system);
+}
+
+/*-----------------------------------------------------------------------------
+Triggering of Built-in Systems
+-----------------------------------------------------------------------------*/
+
+void ecs_system_notify(struct ecs *ecs,
+		       struct command *command,
+		       const char *buffer,
+		       const jsmntok_t *params)
+{
+	const char *system;
+	const jsmntok_t *entity;
+
+	struct ecs_system_wrapper *wrapper;
+	
+	const char *error;
+
+	error = json_scan(tmpctx, buffer, params,
+			  "{system:%}",
+			  JSON_SCAN_TAL(tmpctx, json_strdup, &system));
+	if (error) {
+		plugin_log(command->plugin, LOG_UNUSUAL,
+			   "Triggered '%s' without 'system' parameter: "
+			   "%.*s",
+			   ECSYS_SYSTEM_NOTIFICATION,
+			   json_tok_full_len(params),
+			   json_tok_full(buffer, params));
+		return;
+	}
+
+	wrapper = strmap_get(&ecs->system_funcs, system);
+	if (!wrapper)
+		/* This is *not* unusual; non-builtin systems that
+		 * were provided by other plugins will not be in
+		 * our strmap.
+		 */
+		return;
+
+	entity = json_get_member(buffer, params, "entity");
+	if (!entity) {
+		plugin_log(command->plugin, LOG_UNUSUAL,
+			   "Triggered '%s' without 'entity' parameter: "
+			   "%.*s",
+			   ECSYS_SYSTEM_NOTIFICATION,
+			   json_tok_full_len(params),
+			   json_tok_full(buffer, params));
+		return;
+	}
+
+	wrapper->func(ecs, command, buffer, entity);
 }
 
 /*-----------------------------------------------------------------------------
@@ -256,17 +322,6 @@ void ecs_register_concat(struct ecs_register_desc **parray,
 	} while (to_add->type != ECS_REGISTER_TYPE_OVER_AND_OUT);
 }
 
-struct ecs_system_wrapper {
-	struct ecs *ecs;
-	const char *name;
-	ecs_system_function func;
-};
-static struct command_result *
-ecs_system_wrapper_func(struct plugin *plugin,
-			struct ecsys *ecsys UNUSED,
-			u32 entity,
-			struct ecs_system_wrapper *wrapper);
-
 void ecs_register(struct ecs *ecs,
 		  const struct ecs_register_desc *to_register TAKES)
 {
@@ -300,7 +355,7 @@ void ecs_register(struct ecs *ecs,
 			break;
 
 		case ECS_REGISTER_TYPE_REQUIRE:
-			assert(name && func);
+			assert(name);
 			if (!required)
 				required = tal_arr(owner, const char *, 0);
 			tal_arr_expand(&required,
@@ -308,7 +363,7 @@ void ecs_register(struct ecs *ecs,
 			break;
 
 		case ECS_REGISTER_TYPE_DISALLOW:
-			assert(name && func && required);
+			assert(name && required);
 			if (!disallowed)
 				disallowed = tal_arr(owner, const char *, 0);
 			tal_arr_expand(&disallowed,
@@ -316,21 +371,21 @@ void ecs_register(struct ecs *ecs,
 			break;
 
 		case ECS_REGISTER_TYPE_DONE:
-			assert(name && func);
-
-			/* Construct the wrapper, have it be owned by
-			 * the ECS framework, it needs to persist.
-			 */
-			wrapper = tal(ecs, struct ecs_system_wrapper);
-			wrapper->ecs = ecs;
-			wrapper->name = tal_strdup(wrapper, name);
-			wrapper->func = func;
+			assert(name);
 
 			ecsys_register(ecs->ecsys, name,
 				       required, tal_count(required),
-				       disallowed, tal_count(disallowed),
-				       &ecs_system_wrapper_func,
-				       wrapper);
+				       disallowed, tal_count(disallowed));
+			/* Also register to our layer if a function is
+			 * declared.
+			 */
+			if (func) {
+				wrapper = tal(ecs, struct ecs_system_wrapper);
+				wrapper->name = tal_strdup(wrapper, name);
+				wrapper->func = func;
+				strmap_add(&ecs->system_funcs,
+					   wrapper->name, wrapper);
+			}
 
 			/* Clear the variables.  */
 			name = NULL;
@@ -351,15 +406,6 @@ void ecs_register(struct ecs *ecs,
 	assert(!disallowed);
 
 	tal_free(owner);
-}
-
-static struct command_result *
-ecs_system_wrapper_func(struct plugin *plugin,
-			struct ecsys *ecsys UNUSED,
-			u32 entity,
-			struct ecs_system_wrapper *wrapper)
-{
-	return wrapper->func(plugin, wrapper->ecs, wrapper->name, entity);
 }
 
 /*-----------------------------------------------------------------------------
