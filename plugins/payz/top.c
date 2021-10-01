@@ -6,6 +6,7 @@
 #include<plugins/payz/ecs/ecs.h>
 #include<plugins/payz/payecs_code.h>
 #include<plugins/payz/payecs_data.h>
+#include<plugins/payz/systems/nonce.h>
 
 struct payz_top *payz_top = NULL;
 
@@ -30,7 +31,7 @@ void setup_payz_top(const char *pay_command,
 	/* Register builtin systems.  */
 	to_register = ecs_register_begin(payz_top);
 	/* Systems that are included in default.  */
-	/* TODO: ecs_register_concat(&to_register, some_builtin_system); */
+	ecs_register_concat(&to_register, system_nonce);
 
 	/* Extract default systems.  */
 	payz_top->default_systems = tal_arr(payz_top, const char *, 0);
