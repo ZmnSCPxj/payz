@@ -34,10 +34,6 @@ static bool wrapped_get_component(const void *ec,
 				  const jsmntok_t **toks,
 				  u32 entity,
 				  const char *component);
-static void plugin_notification_func(struct plugin *plugin,
-				     const char *method,
-				     const char *buffer,
-				     const jsmntok_t *tok);
 
 static void ecs_destructor(struct ecs *ecs);
 
@@ -50,7 +46,8 @@ struct ecs *ecs_new(const tal_t *ctx)
 			       &wrapped_get_component,
 			       &ec_set_component,
 			       ecs->ec,
-			       &plugin_notification_func,
+			       &plugin_notification_start,
+			       &plugin_notification_end,
 			       &wrapped_plugin_log);
 	strmap_init(&ecs->system_funcs);
 	tal_add_destructor(ecs, &ecs_destructor);
@@ -72,16 +69,6 @@ static bool wrapped_get_component(const void *ec,
 				  const char *component)
 {
 	return ec_get_component(ec, buffer, toks, entity, component);
-}
-
-static void plugin_notification_func(struct plugin *plugin,
-				     const char *method,
-				     const char *buffer,
-				     const jsmntok_t *tok)
-{
-	struct json_stream *js = plugin_notification_start(plugin, method);
-	json_add_tok(js, NULL, tok, buffer);
-	plugin_notification_end(plugin, take(js));
 }
 
 static void ecs_destructor(struct ecs *ecs)

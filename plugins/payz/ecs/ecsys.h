@@ -35,8 +35,10 @@ struct ecsys;
  * on the EC table.
  * @param ec - the object to pass as first argument to the above
  * functions.
- * @param plugin_notification - the function to call to emit a
- * notification.
+ * @param plugin_notification_start - the function to call to
+ * start a notification.
+ * @param plugin_notification_end - the function to call to
+ * actuall emit a notificaation.
  * @param plugin_log - the function to print a log message.
  */
 struct ecsys *ecsys_new_(const tal_t *ctx,
@@ -51,14 +53,14 @@ struct ecsys *ecsys_new_(const tal_t *ctx,
 					       const char *buffer,
 					       const jsmntok_t *tok),
 			 void *ec,
-			 void (*plugin_notification)(struct plugin *,
-				 		     const char *method,
-						     const char *buffer,
-						     const jsmntok_t *tok),
+			 struct json_stream *(*plugin_notification_start)(struct plugin *,
+									  const char *method),
+			 void (*plugin_notification_end)(struct plugin *,
+				 			 struct json_stream *stream),
 			 void (*plugin_log)(struct plugin *,
 					    enum log_level,
 					    const char *));
-#define ecsys_new(ctx, getc, setc, ec, notif, log) \
+#define ecsys_new(ctx, getc, setc, ec, nstart, nend, log) \
 	ecsys_new_((ctx), \
 		   typesafe_cb_postargs(void, const void *, (getc), (ec), \
 					const char **, \
@@ -70,7 +72,7 @@ struct ecsys *ecsys_new_(const tal_t *ctx,
 					const char *, \
 					const char *, \
 					const jsmntok_t *), \
-		   (ec), (notif), (log))
+		   (ec), (nstart), (nend), (log))
 
 /** ecsys_register
  *

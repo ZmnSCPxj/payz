@@ -40,10 +40,10 @@ struct ecsys {
 			      const char *,
 			      const jsmntok_t *);
 	void *ec;
-	void (*plugin_notification)(struct plugin *,
-				    const char *method,
-				    const char *buffer,
-				    const jsmntok_t *tok);
+	struct json_stream *(*plugin_notification_start)(struct plugin *,
+							 const char *method);
+	void (*plugin_notification_end)(struct plugin *,
+					struct json_stream *stream);
 	void (*plugin_log)(struct plugin *,
 			   enum log_level,
 			   const char *);
@@ -66,10 +66,10 @@ struct ecsys *ecsys_new_(const tal_t *ctx,
 					       const char *buffer,
 					       const jsmntok_t *tok),
 			 void *ec,
-			 void (*plugin_notification)(struct plugin *,
-				 		     const char *method,
-						     const char *buffer,
-						     const jsmntok_t *tok),
+			 struct json_stream *(*plugin_notification_start)(struct plugin *,
+									  const char *method),
+			 void (*plugin_notification_end)(struct plugin *,
+				 			 struct json_stream *stream),
 			 void (*plugin_log)(struct plugin *,
 					    enum log_level,
 					    const char *))
@@ -80,7 +80,8 @@ struct ecsys *ecsys_new_(const tal_t *ctx,
 	ecsys->get_component = get_component;
 	ecsys->set_component = set_component;
 	ecsys->ec = ec;
-	ecsys->plugin_notification = plugin_notification;
+	ecsys->plugin_notification_start = plugin_notification_start;
+	ecsys->plugin_notification_end = plugin_notification_end;
 	ecsys->plugin_log = plugin_log;
 
 	tal_add_destructor(ecsys, &ecsys_destroy);
@@ -288,14 +289,10 @@ static void run_system(struct plugin *plugin,
 {
 	struct json_stream *js;
 
-	const char *paramsbuf;
-	size_t paramsbuflen;
-	jsmntok_t *paramstok;
 	unsigned int i;
 
 	/* Construct params.  */
-	js = new_json_stream(tmpctx, NULL, NULL);
-	json_object_start(js, NULL);
+	js = ecsys->plugin_notification_start(plugin, ECSYS_SYSTEM_NOTIFICATION);
 	json_add_string(js, "system", system->system);
 
 	/* Construct entity, pass in the components that are
@@ -315,13 +312,8 @@ static void run_system(struct plugin *plugin,
 	}
 	json_object_end(js);
 
-	json_object_end(js);
-
-	/* Parse the parameters and give to notification.  */
-	paramsbuf = json_out_contents(js->jout, &paramsbuflen);
-	paramstok = json_parse_simple(tmpctx, paramsbuf, paramsbuflen);
-	ecsys->plugin_notification(plugin, ECSYS_SYSTEM_NOTIFICATION,
-				   paramsbuf, paramstok);
+	/* Now raise the notification.  */
+	ecsys->plugin_notification_end(plugin, js);
 }
 
 static struct command_result *
