@@ -328,7 +328,7 @@ void (*ecs_system_function)(struct ecs *, struct command *,
 	{ ECS_REGISTER_TYPE_DISALLOW, \
 	  typesafe_cb_cast(const void *, const char *, (component)) }
 #define ECS_REGISTER_DONE() \
-	{ ECS_REGISTER_TYPE_DISALLOW, NULL }
+	{ ECS_REGISTER_TYPE_DONE, NULL }
 #define ECS_REGISTER_OVER_AND_OUT() \
 	{ ECS_REGISTER_TYPE_OVER_AND_OUT, NULL }
 
