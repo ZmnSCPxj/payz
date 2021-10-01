@@ -580,8 +580,15 @@ payecs_systrace(struct command *cmd,
 		json_object_start(out, NULL);
 		json_add_string(out, "time",
 				format_time(tmpctx, entry->time));
+		/* This is broken because json_add_literal ignores its len argument, WTF.
 		json_add_literal(out, "params",
 				 entry->json, entry->json_len);
+		*/
+		jsmntok_t dummy;
+		dummy.start = 0;
+		dummy.end = entry->json_len;
+		json_add_tok(out, "params", &dummy, entry->json);
+
 		json_object_end(out);
 	}
 	json_array_end(out);
