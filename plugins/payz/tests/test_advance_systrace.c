@@ -61,8 +61,9 @@ int main(int argc, char **argv)
 	payz_tester_command(&buffer, &result,
 			    "payecs_systrace", "[1]");
 	error = json_scan(tmp, buffer, result,
-			  "{entity:%,trace:[0:{params:"
-			  "{system:%,entity:{entity:%,example:%}}}]}",
+			  "{entity:%,"
+			  "trace:[0:{system:%,"
+			  "entity:{entity:%,example:%}}]}",
 			  JSON_SCAN(json_to_u32, &entity1),
 			  JSON_SCAN_TAL(tmp, json_strdup, &system),
 			  JSON_SCAN(json_to_u32, &entity2),

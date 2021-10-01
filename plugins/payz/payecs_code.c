@@ -18,6 +18,7 @@
 #include<plugins/payz/parsing.h>
 #include<plugins/payz/setsystems.h>
 #include<plugins/payz/top.h>
+#include<string.h>
 #include<time.h>
 
 /*-----------------------------------------------------------------------------
@@ -490,16 +491,15 @@ Systrace
 struct payecs_systrace_entry {
 	struct list_node list;
 
-	/** The time this entry was added.  */
-	struct timeabs time;
-
 	/** The entity this was triggered on.  */
 	u32 entity;
 
-	/** The entire JSON 'params' we got from the RPC notification.  */
+	/** The JSON 'system' and `entity` we got from the RPC
+	 * notification, plus a 'time' field.
+	 * This is a nul-terminated C string containing formatted
+	 * JSON text.
+	 */
 	char *json;
-	/** Length of above text.  */
-	int json_len;
 };
 
 /** payecs_systraces_remaining
@@ -514,6 +514,8 @@ static size_t payecs_systraces_remaining = 100000;
  */
 static LIST_HEAD(payecs_systraces);
 
+static char *format_time(const tal_t *ctx, struct timeabs time);
+
 static void payecs_systrace_add(struct plugin *plugin,
 				const char *buf,
 				const jsmntok_t *params)
@@ -524,14 +526,19 @@ static void payecs_systrace_add(struct plugin *plugin,
 
 	const char *error;
 
+	const jsmntok_t *system;
+	const jsmntok_t *entity_obj;
+
 	/* Check if we can get the entity ID.  */
 	error = json_scan(tmpctx, buf, params,
 			  "{entity:{entity:%}}",
 			  JSON_SCAN(json_to_u32, &entity));
 	if (error) {
 		plugin_log(plugin, LOG_UNUSUAL,
-			   "Invalid '%s' parameters: %s",
-			   ECS_SYSTEM_NOTIFICATION, error);
+			   "Invalid '%s' parameters: %s: %.*s",
+			   ECS_SYSTEM_NOTIFICATION, error,
+			   json_tok_full_len(params),
+			   json_tok_full(buf, params));
 		return;
 	}
 
@@ -543,18 +550,31 @@ static void payecs_systrace_add(struct plugin *plugin,
 		++payecs_systraces_remaining;
 	}
 
+	/* Extract these.  */
+	system = json_get_member(buf, params, "system");
+	entity_obj = json_get_member(buf, params, "entity");
+	if (!system || !entity_obj) {
+		plugin_log(plugin, LOG_UNUSUAL,
+			   "'%s' parameter missing 'system' or 'entity': %.*s",
+			   ECS_SYSTEM_NOTIFICATION,
+			   json_tok_full_len(params),
+			   json_tok_full(buf, params));
+		return;
+	}
+
 	entry = tal(payz_top, struct payecs_systrace_entry);
-	entry->time = time_now();
 	entry->entity = entity;
-	entry->json = tal_dup_arr(entry, char,
-				  json_tok_full(buf, params),
-				  json_tok_full_len(params), 0);
-	entry->json_len = json_tok_full_len(params);
+	entry->json = tal_fmt(entry,
+			      "{\"time\": \"%s\", \"system\": %.*s,"
+			      " \"entity\": %.*s}",
+			      format_time(tmpctx, time_now()),
+			      json_tok_full_len(system),
+			      json_tok_full(buf, system),
+			      json_tok_full_len(entity_obj),
+			      json_tok_full(buf, entity_obj));
 	list_add_tail(&payecs_systraces, &entry->list);
 	--payecs_systraces_remaining;
 }
-
-static char *format_time(const tal_t *ctx, struct timeabs time);
 
 static struct command_result *
 payecs_systrace(struct command *cmd,
@@ -577,19 +597,8 @@ payecs_systrace(struct command *cmd,
 	list_for_each (&payecs_systraces, entry, list) {
 		if (entry->entity != *entity)
 			continue;
-		json_object_start(out, NULL);
-		json_add_string(out, "time",
-				format_time(tmpctx, entry->time));
-		/* This is broken because json_add_literal ignores its len argument, WTF.
-		json_add_literal(out, "params",
-				 entry->json, entry->json_len);
-		*/
-		jsmntok_t dummy;
-		dummy.start = 0;
-		dummy.end = entry->json_len;
-		json_add_tok(out, "params", &dummy, entry->json);
-
-		json_object_end(out);
+		json_add_literal(out, NULL,
+				 entry->json, strlen(entry->json));
 	}
 	json_array_end(out);
 	return command_finished(cmd, out);
