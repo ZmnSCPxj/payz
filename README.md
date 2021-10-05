@@ -17,3 +17,7 @@ Goals
 * Use mincostflow algorithms and various innovations by
   Richter and Pickhardt, hopefully for better payment
   success.
+* The intent is that this project will eventually get
+  merged into the actual C-Lightning, which is why it is
+  written in C and uses extensive parts of C-Lightning as
+  well.
