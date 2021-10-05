@@ -57,7 +57,7 @@ const struct plugin_command payecs_code_commands[] = {
 		"payment",
 		"Register a new {system}, which will invoke {command} if "
 		"it is used in an entity with all {required} components and "
-		"wht none of the {disallowed} components.",
+		"with none of the {disallowed} components.",
 		"Register new system.",
 		&payecs_newsystem
 	},
