@@ -321,3 +321,19 @@ void payz_tester_command_expectfail(const char *method,
 		     method, params, expected_code,
 		     expected_code, actual_code);
 }
+
+void payz_tester_command_ok(const char *method,
+			    const char *params)
+{
+	bool ret;
+	const char *buffer;
+	const jsmntok_t *result;
+
+	ret = payz_tester_command(&buffer, &result, method, params);
+	if (!ret)
+		errx(1, "payz_tester_command_ok(%s, %s): "
+		     "Command failed! %.*s",
+		     method, params,
+		     json_tok_full_len(result),
+		     json_tok_full(buffer, result));
+}

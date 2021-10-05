@@ -81,4 +81,18 @@ void payz_tester_command_expectfail(const char *method,
 				    const char *params,
 				    errcode_t expected_code);
 
+/** payz_tester_command_ok
+ *
+ * @brief Send a command and parameters, and assert that
+ * the command will succeed but otherwise ignore its
+ * return value.
+ *
+ * @desc This function calls into payz_tester_command.
+ *
+ * @param method - the method to call in the plugin.
+ * @param params - the parameters to provide.
+ */
+void payz_tester_command_ok(const char *method,
+			    const char *params);
+
 #endif /* LIGHTNING_PLUGINS_PAYZ_TESTER_TESTER_H */
