@@ -12,8 +12,9 @@
 
 static void generate_nonce(struct ecs *ecs,
 			   struct command *cmd,
+			   u32 entity,
 			   const char *buffer,
-			   const jsmntok_t *entity);
+			   const jsmntok_t *eo);
 
 struct ecs_register_desc system_nonce[] = {
 	ECS_REGISTER_NAME("lightningd:generate_nonce"),
@@ -26,24 +27,12 @@ struct ecs_register_desc system_nonce[] = {
 };
 static void generate_nonce(struct ecs *ecs,
 			   struct command *cmd,
+			   u32 entity,
 			   const char *buffer,
 			   const jsmntok_t *eo)
 {
-	u32 entity;
-	const char *error;
-
 	u8 nonce[32];
 	char *nonce_hex;
-
-	error = json_scan(tmpctx, buffer, eo,
-			  "{entity:%}",
-			  JSON_SCAN(json_to_u32, &entity));
-	if (error) {
-		plugin_log(cmd->plugin, LOG_UNUSUAL,
-			   "Expecting entity ID: %.*s",
-			   json_tok_full_len(eo), json_tok_full(buffer, eo));
-		return;
-	}
 
 	randombytes_buf(nonce, sizeof(nonce));
 	nonce_hex = tal_hexstr(tmpctx, nonce, sizeof(nonce));

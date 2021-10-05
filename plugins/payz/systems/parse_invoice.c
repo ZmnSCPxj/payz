@@ -8,8 +8,10 @@
 #include<plugins/libplugin.h>
 
 static void parse_invoice(struct ecs *, struct command *,
+			  u32 entity,
 			  const char *buffer, const jsmntok_t *eo);
 static void promote_invoice_type(struct ecs *ecs, struct command *cmd,
+				 u32 entity,
 				 const char *buffer, const jsmntok_t *eo);
 
 struct ecs_register_desc system_parse_invoice[] = {
@@ -50,25 +52,13 @@ parse_invoice_decode_ng(struct command *cmd,
 			 struct parse_invoice_closure *closure);
 
 static void parse_invoice(struct ecs *ecs, struct command *cmd,
+			  u32 entity,
 			  const char *buffer, const jsmntok_t *eo)
 {
-	const char *error;
-
-	u32 entity;
 	const jsmntok_t *invoice;
 
 	struct parse_invoice_closure *closure;
 	struct out_req *req;
-
-	error = json_scan(tmpctx, buffer, eo,
-			  "{entity:%}",
-			  JSON_SCAN(json_to_u32, &entity));
-	if (error) {
-		plugin_log(cmd->plugin, LOG_UNUSUAL,
-			   "Expecting entity ID: %.*s",
-			   json_tok_full_len(eo), json_tok_full(buffer, eo));
-		return;
-	}
 
 	invoice = json_get_member(buffer, eo, "lightningd:invoice");
 	if (!invoice) {
@@ -158,24 +148,12 @@ Invoice Type Promotion
  */
 
 static void promote_invoice_type(struct ecs *ecs, struct command *cmd,
+				 u32 entity,
 				 const char *buffer, const jsmntok_t *eo)
 {
-	u32 entity;
-
-	const char *error;
-
 	const jsmntok_t *type_tok;
 	char *type;
 
-	error = json_scan(tmpctx, buffer, eo,
-			  "{entity:%}",
-			  JSON_SCAN(json_to_u32, &entity));
-	if (error) {
-		plugin_log(cmd->plugin, LOG_UNUSUAL,
-			   "Expecting entity ID: %.*s",
-			   json_tok_full_len(eo), json_tok_full(buffer, eo));
-		return;
-	}
 	type_tok = json_get_member(buffer, eo, "lightningd:invoice:type");
 	if (!type_tok) {
 		plugin_log(cmd->plugin, LOG_UNUSUAL,

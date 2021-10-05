@@ -235,6 +235,8 @@ void ecs_system_notify(struct ecs *ecs,
 	const char *system;
 	const jsmntok_t *entity;
 
+	u32 eid;
+
 	struct ecs_system_wrapper *wrapper;
 	
 	const char *error;
@@ -246,7 +248,7 @@ void ecs_system_notify(struct ecs *ecs,
 		plugin_log(command->plugin, LOG_UNUSUAL,
 			   "Triggered '%s' without 'system' parameter: "
 			   "%.*s",
-			   ECSYS_SYSTEM_NOTIFICATION,
+			   ECS_SYSTEM_NOTIFICATION,
 			   json_tok_full_len(params),
 			   json_tok_full(buffer, params));
 		return;
@@ -265,13 +267,26 @@ void ecs_system_notify(struct ecs *ecs,
 		plugin_log(command->plugin, LOG_UNUSUAL,
 			   "Triggered '%s' without 'entity' parameter: "
 			   "%.*s",
-			   ECSYS_SYSTEM_NOTIFICATION,
+			   ECS_SYSTEM_NOTIFICATION,
 			   json_tok_full_len(params),
 			   json_tok_full(buffer, params));
 		return;
 	}
 
-	wrapper->func(ecs, command, buffer, entity);
+	error = json_scan(tmpctx, buffer, entity,
+			  "{entity:%}",
+			  JSON_SCAN(json_to_u32, &eid));
+	if (error) {
+		plugin_log(command->plugin, LOG_UNUSUAL,
+			   "Triggered '%s' without 'entity' ID: "
+			   "'entity': %.*s",
+			   ECS_SYSTEM_NOTIFICATION,
+			   json_tok_full_len(entity),
+			   json_tok_full(buffer, entity));
+		return;
+	}
+
+	wrapper->func(ecs, command, eid, buffer, entity);
 }
 
 /*-----------------------------------------------------------------------------

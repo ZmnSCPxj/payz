@@ -300,13 +300,15 @@ struct ecs_register_desc {
 	const void *pointer;
 };
 
-/* The entity given is an object, with a field "entity" with a numeric
- * entity id, and the rest of the fields being components that were
- * registered as required.
+/* The components given is an object, with a field "entity" with a
+ * numeric entity id, and the rest of the fields being components that
+ * were registered as required.
+ * The entity given is the numeric entity id.
  */
 typedef
 void (*ecs_system_function)(struct ecs *, struct command *,
-			    const char *buffer, const jsmntok_t *entity);
+			    u32 entity,
+			    const char *buffer, const jsmntok_t *components);
 
 #define ECS_REGISTER_NAME(name) \
 	{ ECS_REGISTER_TYPE_NAME, \
