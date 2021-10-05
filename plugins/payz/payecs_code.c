@@ -414,7 +414,9 @@ payecs_getdefaultsystems(struct command *cmd,
 		return command_param_failed();
 
 	out = jsonrpc_stream_success(cmd);
+	json_array_start(out, "systems");
 	json_splice_default_systems(out);
+	json_array_end(out);
 	return command_finished(cmd, out);
 }
 
