@@ -167,7 +167,7 @@ void ecs_set_component_datum(struct ecs *ecs,
 /** ecs_advance
  *
  * @brief Advances processing of the specified entity, triggering
- * the next system in its `lightningd:systems` component.
+ * a matching system in its `lightningd:systems` component.
  *
  * @param plugin - The plugin this is running in.
  * @param ecs - The ECS framework.

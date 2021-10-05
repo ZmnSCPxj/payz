@@ -173,10 +173,8 @@ struct command_result *ecsys_advance_(struct plugin *plugin,
 	const char **systems;
 	size_t nsystems;
 	unsigned int current;
-	unsigned int next;
 
 	unsigned int i;
-	unsigned int index;
 
 	struct ecsys_registered *system;
 	bool found;
@@ -198,21 +196,11 @@ struct command_result *ecsys_advance_(struct plugin *plugin,
 					   "invalid or absent `systems` field.");
 	nsystems = tal_count(systems);
 
-	found = payz_generic_getsystems(ecsys->get_component, ecsys->ec,
-					entity, "current",
-					&json_to_number, &current);
-	if (found)
-		next = current + 1;
-	else
-		next = 0;
-
 	/* Search for matching system.  */
 	found = false;
-	for (i = 0, index = next;
-	     i < nsystems;
-	     ++i, index = (index + 1) % nsystems) {
+	for (i = 0; i < nsystems; ++i) {
 		/* Find the system.  */
-		system = strmap_get(&ecsys->system_map, systems[index]);
+		system = strmap_get(&ecsys->system_map, systems[i]);
 		if (!system)
 			return ecsys_advance_error(plugin, ecsys, entity,
 						   errcb, cbarg,
@@ -220,7 +208,7 @@ struct command_result *ecsys_advance_(struct plugin *plugin,
 						   "Invalid `lightningd:systems`: "
 						   "`systems` array contains "
 						   "unregistered system: %s",
-						   systems[index]);
+						   systems[i]);
 
 		if (system_matches(ecsys, entity, system)) {
 			found = true;
@@ -234,7 +222,7 @@ struct command_result *ecsys_advance_(struct plugin *plugin,
 					   "No systems match, cannot advance.");
 
 	/* Update component.  */
-	current = index;
+	current = i;
 	buffer = tal_fmt(tmpctx, "%u", current);
 	toks = json_parse_simple(tmpctx, buffer, strlen(buffer));
 	payz_generic_setsystems_tok(ecsys->get_component,
