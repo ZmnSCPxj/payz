@@ -141,6 +141,7 @@ payz_tester_command_process(struct payz_tester_command *command,
 	struct payz_tester_command_qentry *qe;
 	bool is_notif;
 	const jsmntok_t *method;
+	const jsmntok_t *params;
 
 	is_notif = !json_get_member(buffer, toks, "id");
 
@@ -149,20 +150,19 @@ payz_tester_command_process(struct payz_tester_command *command,
 		errx(1, "plugin stdout: No 'method' in response: %.*s",
 		     json_tok_full_len(toks), json_tok_full(buffer, toks));
 
+	params = json_get_member(buffer, toks, "params");
+	if (is_notif && !params)
+		errx(1,
+		     "plugin stdout: No 'params' in "
+		     "notification: %.*s",
+		     json_tok_full_len(toks),
+		     json_tok_full(buffer, toks));
+
 	/* Print out log entries directly to our own stdout.  */
 	if (is_notif && json_tok_streq(buffer, method, "log")) {
-		const jsmntok_t *params;
 		const char *error;
 		char *level;
 		char *message;
-
-		params = json_get_member(buffer, toks, "params");
-		if (!params)
-			errx(1,
-			     "plugin stdout: No 'params' in "
-			     "response: %.*s",
-			     json_tok_full_len(toks),
-			     json_tok_full(buffer, toks));
 
 		error = json_scan(tmpctx, buffer, params,
 				  "{level:%,message:%}",
@@ -179,14 +179,28 @@ payz_tester_command_process(struct payz_tester_command *command,
 	 * plugin.
 	 */
 	if (is_notif && json_tok_streq(buffer, method,
-				       ECS_SYSTEM_NOTIFICATION))
+				       ECS_SYSTEM_NOTIFICATION)) {
+		/* lightningd adds an additional `payload` wrapper
+		 * and an `origin` field to the `params`.
+		 */
+		const char *notif;
+
+		notif = tal_fmt(tmpctx,
+				"{\"jsonrpc\": \"2.0\","
+				" \"method\": \""ECS_SYSTEM_NOTIFICATION"\","
+				" \"params\": "
+				"   {\"origin\": \"payz\","
+				"    \"payload\": %.*s}}",
+				json_tok_full_len(params),
+				json_tok_full(buffer, params));
+
 		write_timed(command->to_stdin,
-			    json_tok_full(buffer, toks),
-			    json_tok_full_len(toks),
+			    notif, strlen(notif),
 			    time_mono(), command->timeout);
 		/* Do not return, let it be added to notifications
 		 * list.
 		 */
+	}
 
 	qe = tal(command, struct payz_tester_command_qentry);
 	qe->buffer = tal_strndup(qe, buffer, toks[0].end);
