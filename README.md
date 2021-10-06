@@ -21,3 +21,6 @@ Goals
   merged into the actual C-Lightning, which is why it is
   written in C and uses extensive parts of C-Lightning as
   well.
+
+For more information: [PAYECS.md](doc/PAYECS.md),
+[PAYECS-REF.md](doc/PAYECS-REF.md)
