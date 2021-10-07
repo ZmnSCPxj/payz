@@ -26,6 +26,16 @@ For more information on the basics of the Payment ECS, see
 Components
 ----------
 
+### `lightningd:amount`
+
+A string containing the millisatoshi amount to pay to the destination,
+with the unit `msat` appended to it.
+
+The default payment flow requires this Component so it knows how much to
+deliver to the destination, but will copy it from a
+`lightningd:invoice:amount_msat` Component if one is attached (and will fail
+the Entity if both are attached).
+
 ### `lightningd:invoice` and Family
 
 A string that should be attached when you initialize a main payment
@@ -44,8 +54,8 @@ the amount parsed.
 
 The default flow will fail the Entity and stop processing if the
 `lightningd:invoice:currency` does not match your node currency; if
-you want to continue processing, then you should have a System do
-this check and detach the Component to prevent the error, and possibly
+you want to continue processing, then you should have a prepended System
+do this check and detach the Component to prevent the error, and possibly
 modify your payment flow (by attaching your own Components) so you can
 somehow pay using the destination currency.
 
@@ -55,6 +65,13 @@ For example, if the `lightningd:invoice:type` Component is `"bolt11
 invoice"`, then a Component named `lightningd:invoice:type:bolt11 invoice`
 will be attached to the value `true`.
 Your own Systems can trigger on the promoted Component name.
+
+The default flow will check if `lightningd:amount` does not exist but
+`lightningd:invoice:amount_msat` does; if so, it detaches the
+`lightningd:invoice:amount_msat` and attaches its value to
+`lightningd:amount`.
+If the default flow finds both, it will fail entity processing with an
+error in `lightningd:error`.
 
 ### `lightningd:nonce`
 
