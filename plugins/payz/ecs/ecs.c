@@ -18,6 +18,7 @@ ECS Object Construction
 struct ecs_system_wrapper {
 	char *name;
 	ecs_system_function func;
+	const char **required;
 };
 
 struct ecs {
@@ -241,6 +242,8 @@ void ecs_system_notify(struct ecs *ecs,
 	
 	const char *error;
 
+	size_t i;
+
 	error = json_scan(tmpctx, buffer, params,
 			  "{system:%}",
 			  JSON_SCAN_TAL(tmpctx, json_strdup, &system));
@@ -284,6 +287,22 @@ void ecs_system_notify(struct ecs *ecs,
 			   json_tok_full_len(entity),
 			   json_tok_full(buffer, entity));
 		return;
+	}
+
+	/* Check all the required components are in the parameters.  */
+	for (i = 0; i < tal_count(wrapper->required); ++i) {
+		if (!json_get_member(buffer, entity, wrapper->required[i])) {
+			plugin_log(command->plugin, LOG_UNUSUAL,
+				   "Triggered '%s' on system '%s' "
+				   "without being provided "
+				   "required component '%s': %.*s",
+				   ECS_SYSTEM_NOTIFICATION,
+				   wrapper->name,
+				   wrapper->required[i],
+				   json_tok_full_len(entity),
+				   json_tok_full(buffer, entity));
+			return;
+		}
 	}
 
 	wrapper->func(ecs, command, eid, buffer, entity);
@@ -385,8 +404,13 @@ void ecs_register(struct ecs *ecs,
 				wrapper = tal(ecs, struct ecs_system_wrapper);
 				wrapper->name = tal_strdup(wrapper, name);
 				wrapper->func = func;
+				wrapper->required = tal_steal(wrapper,
+							      required);
 				strmap_add(&ecs->system_funcs,
 					   wrapper->name, wrapper);
+
+				/* wrapper took responsibility for it.  */
+				required = NULL;
 			}
 
 			/* Clear the variables.  */

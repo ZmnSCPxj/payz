@@ -61,12 +61,6 @@ static void parse_invoice(struct ecs *ecs, struct command *cmd,
 	struct out_req *req;
 
 	invoice = json_get_member(buffer, eo, "lightningd:invoice");
-	if (!invoice) {
-		plugin_log(cmd->plugin, LOG_UNUSUAL,
-			   "Expecting 'lightningd:invoice': %.*s",
-			   json_tok_full_len(eo), json_tok_full(buffer, eo));
-		return;
-	}
 
 	/* Prevent ourselves from running again.  */
 	ecs_set_component_datum(ecs, entity,
@@ -155,13 +149,6 @@ static void promote_invoice_type(struct ecs *ecs, struct command *cmd,
 	char *type;
 
 	type_tok = json_get_member(buffer, eo, "lightningd:invoice:type");
-	if (!type_tok) {
-		plugin_log(cmd->plugin, LOG_UNUSUAL,
-			   "Expecting 'lightningd:invoice:type': %.*s",
-			   json_tok_full_len(eo), json_tok_full(buffer, eo));
-		return;
-	}
-
 	type = json_strdup(tmpctx, buffer, type_tok);
 
 	ecs_set_component_datum(ecs, entity,

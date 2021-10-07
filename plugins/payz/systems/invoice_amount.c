@@ -40,14 +40,6 @@ static void invoice_amount_msat(struct ecs *ecs, struct command *cmd,
 
 	amount_msat = json_get_member(buffer, components,
 				      "lightningd:invoice:amount_msat");
-	if (!amount_msat) {
-		plugin_log(cmd->plugin, LOG_UNUSUAL,
-			   "lightningd:invoice_amount_msat triggered "
-			   "without required components? %.*s",
-			   json_tok_full_len(components),
-			   json_tok_full(buffer, components));
-		return;
-	}
 
 	/* Detach lightningd:invoice:amount_msat, attach lightningd:amount.  */
 	ecs_set_component_datum(ecs, entity, "lightningd:invoice:amount_msat",
