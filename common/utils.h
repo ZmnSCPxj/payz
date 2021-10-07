@@ -8,6 +8,12 @@
  * libsepc256k1.
  */
 
+/* We do not need this here, but common/json.h expects that
+ * *something* will include build_assert.h, and may depend
+ * on common/utils.h including ccan/ccan/structeq/structeq.h,
+ * which includes this.  */
+#include<ccan/build_assert/build_assert.h>
+
 struct chainparams;
 
 extern const struct chainparams *chainparams;

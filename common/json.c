@@ -1,7 +1,6 @@
 /* JSON core and helpers */
 #include "config.h"
 #include <assert.h>
-#include <ccan/build_assert/build_assert.h>
 #include <ccan/json_escape/json_escape.h>
 #include <ccan/mem/mem.h>
 #include <ccan/str/hex/hex.h>
@@ -11,11 +10,9 @@
 #include <common/json_stream.h>
 #include <common/overflows.h>
 #include <common/utils.h>
-#include <ctype.h>
 #include <errno.h>
 #include <inttypes.h>
 #include <stdio.h>
-#include <string.h>
 
 const char *json_tok_full(const char *buffer, const jsmntok_t *t)
 {
@@ -1080,9 +1077,9 @@ void json_add_literal(struct json_stream *result, const char *fieldname,
 		      const char *literal, int len)
 {
 	/* Literal may contain quotes, so bypass normal checks */
-	char *dest = json_member_direct(result, fieldname, strlen(literal));
+	char *dest = json_member_direct(result, fieldname, len);
 	if (dest)
-		memcpy(dest, literal, strlen(literal));
+		memcpy(dest, literal, len);
 }
 
 void json_add_stringn(struct json_stream *result, const char *fieldname,
