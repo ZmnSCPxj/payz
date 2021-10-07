@@ -67,6 +67,13 @@ struct payz_tester_rpc {
 	SINTMAP(struct payz_tester_rpc_conn *) conns;
 };
 
+/* The JSON text to return to all listconfigs commands.  */
+static const char *listconfigs =
+"{"
+" \"max-locktime-blocks\": 2016"
+"}"
+;
+
 /* Utility to get current directory in a tal-allocated string.  */
 static char *tal_getcwd(const tal_t *ctx);
 
@@ -174,18 +181,22 @@ payz_tester_rpc_conn_feed(struct payz_tester_rpc_conn *conn,
  * @param method - the method the response is for.
  * @param response - the RPC response to give, if there is a
  * pending request for the given method.
+ * If take(), only *actually* taken if returned true.
  * @param start - the start time to measure timeouts from.
  * @param timeout - the maximum time to write a response to
  * the plugin.
  *
  * @return - true if there was a pending request, which was
- * resolved by this response.
- * False if there is no existing request.
+ * resolved by this response (if the response was take()n,
+ * the response is claimed by this function).
+ * False if there is no existing request (if the response
+ * was take()n, it remains take()n and is **not** freed by
+ * this function).
  */
 static bool
 payz_tester_rpc_conn_tryrespond(struct payz_tester_rpc_conn *conn,
 				const char *method,
-				struct payz_tester_rpc_response *response,
+				struct payz_tester_rpc_response *response TAKES,
 				struct timemono start,
 				struct timerel timeout);
 
@@ -230,7 +241,7 @@ payz_tester_rpc_add_response_obj(struct payz_tester_rpc *rpc,
 static void
 payz_tester_rpc_resolve(int fd,
 			u64 id,
-			struct payz_tester_rpc_response *response,
+			struct payz_tester_rpc_response *response TAKES,
 			struct timemono start,
 			struct timerel timeout);
 
@@ -387,7 +398,7 @@ static void payz_tester_rpc_listenfd(struct payz_tester_rpc *rpc,
 	/* Add it to the array of fds.  */
 	tal_arr_expand(&rpc->fds, newfd);
 	/* Create a new connection object.  */
-	conn = payz_tester_rpc_conn_new(rpc, rpc->queues, fd, rpc->timeout);
+	conn = payz_tester_rpc_conn_new(rpc, rpc->queues, newfd, rpc->timeout);
 	sintmap_add(&rpc->conns, newfd, conn);
 }
 
@@ -560,19 +571,16 @@ payz_tester_rpc_add_response_obj(struct payz_tester_rpc *rpc,
 	for (conn = sintmap_first(&rpc->conns, &index);
 	     conn;
 	     conn = sintmap_after(&rpc->conns, &index)) {
-		if (payz_tester_rpc_conn_tryrespond(conn, method, response,
-						    start, rpc->timeout)) {
+		if (payz_tester_rpc_conn_tryrespond(conn, method, response TAKES,
+						    start, rpc->timeout))
 			/* Someone has handled it, end at this point.  */
-			if (taken(response))
-				tal_free(response);
 			return;
-		}
 	}
 
 	/* Nobody is waiting for a response, add it to the queues
 	 * object instead.
 	 */
-	payz_tester_rpc_queues_push(rpc->queues, method, response);
+	payz_tester_rpc_queues_push(rpc->queues, method, response TAKES);
 }
 
 /*-----------------------------------------------------------------------------
@@ -713,7 +721,18 @@ payz_tester_rpc_conn_process(struct payz_tester_rpc_conn *conn,
 	if (error)
 		errx(1, "Invalid JSON-RPC request: %s", error);
 
-	response = payz_tester_rpc_queues_pop(tmpctx, conn->queues, method);
+
+	/* Filter listconfigs commands and feed them a result directly.  */
+	if (streq(method, "listconfigs")) {
+		response = tal(tmpctx, struct payz_tester_rpc_response);
+		response->error = false;
+		response->data = tal_strdup(response, listconfigs);
+		response->message = NULL;
+		response->code = 0;
+	} else
+		response = payz_tester_rpc_queues_pop(tmpctx,
+						      conn->queues,
+						      method);
 
 	if (!response)
 		payz_tester_rpc_conn_add_request(conn, method, id);
@@ -750,7 +769,7 @@ payz_tester_rpc_conn_add_request(struct payz_tester_rpc_conn *conn,
 static bool
 payz_tester_rpc_conn_tryrespond(struct payz_tester_rpc_conn *conn,
 				const char *method,
-				struct payz_tester_rpc_response *response,
+				struct payz_tester_rpc_response *response TAKES,
 				struct timemono start,
 				struct timerel timeout)
 {
@@ -766,7 +785,7 @@ payz_tester_rpc_conn_tryrespond(struct payz_tester_rpc_conn *conn,
 	request = list_pop(request_list, struct payz_tester_rpc_request, list);
 	tal_steal(tmpctx, request);
 
-	payz_tester_rpc_resolve(conn->fd, request->id, response,
+	payz_tester_rpc_resolve(conn->fd, request->id, response TAKES,
 				start, timeout);
 	return true;
 }
@@ -923,7 +942,7 @@ Responding to RPC Requests
 static void
 payz_tester_rpc_resolve(int fd,
 			u64 id,
-			struct payz_tester_rpc_response *response,
+			struct payz_tester_rpc_response *response TAKES,
 			struct timemono start,
 			struct timerel timeout)
 {
@@ -932,17 +951,20 @@ payz_tester_rpc_resolve(int fd,
 
 	assert(response);
 
+	if (taken(response))
+		tal_steal(tmpctx, response);
+
 	if (response->error)
 		out = tal_fmt(tmpctx,
 			      "{\"jsonrpc\": \"2.0\", \"id\": %"PRIu64", "
 			      " \"error\": {\"code\": %"PRIerrcode", "
-			      "             \"data\": %s, \"message\": %s}}",
+			      "             \"data\": %s, \"message\": %s}}\n\n",
 			      id, response->code, response->data,
 			      response->message);
 	else
 		out = tal_fmt(tmpctx,
 			      "{\"jsonrpc\": \"2.0\", \"id\": %"PRIu64", "
-			      " \"result\": %s}",
+			      " \"result\": %s}\n\n",
 			      id, response->data);
 	/* Omit terminating nul char.  */
 	size = tal_count(out) - 1;
