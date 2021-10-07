@@ -7,6 +7,7 @@
 #include<plugins/payz/payecs_code.h>
 #include<plugins/payz/payecs_data.h>
 #include<plugins/payz/systems/nonce.h>
+#include<plugins/payz/systems/parse_invoice.h>
 
 struct payz_top *payz_top = NULL;
 
@@ -32,6 +33,7 @@ void setup_payz_top(const char *pay_command,
 	to_register = ecs_register_begin(payz_top);
 	/* Systems that are included in default.  */
 	ecs_register_concat(&to_register, system_nonce);
+	ecs_register_concat(&to_register, system_parse_invoice);
 
 	/* Extract default systems.  */
 	payz_top->default_systems = tal_arr(payz_top, const char *, 0);
