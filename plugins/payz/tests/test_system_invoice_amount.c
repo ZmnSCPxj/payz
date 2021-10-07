@@ -9,6 +9,7 @@ int main(int argc, char **argv)
 {
 	const char *buffer;
 	const jsmntok_t *amount;
+	const jsmntok_t *error;
 
 	payz_tester_init(argv[0]);
 
@@ -20,8 +21,10 @@ int main(int argc, char **argv)
 	payz_tester_command_ok("payecs_setcomponents",
 			       "[{\"entity\": 42, "
 			       "\"lightningd:invoice:amount_msat\": \""TEST_AMOUNT"\"}]");
+	/* Put the dummy system in append so it does not block
+	 * the invoice-amount erroring system.  */
 	payz_tester_command_ok("payecs_setdefaultsystems",
-			       "[42, [\""DUMMY_SYS"\"]]");
+			       "[42, [], [\""DUMMY_SYS"\"]]");
 	/* Double-check it has lightningd:invoice:amount_msat.  */
 	payz_tester_wait_component(&buffer, &amount,
 				   42, "lightningd:invoice:amount_msat");
@@ -35,6 +38,17 @@ int main(int argc, char **argv)
 	payz_tester_wait_component(&buffer, &amount,
 				   42, "lightningd:amount");
 	assert(json_tok_streq(buffer, amount, TEST_AMOUNT));
+
+	/* Reattach lightningd:invoice:amount_msat, which should now cause
+	 * a system error.
+	 */
+	payz_tester_command_ok("payecs_setcomponents",
+			       "[{\"entity\": 42, "
+			       "\"lightningd:invoice:amount_msat\": \""TEST_AMOUNT"\"}]");
+	payz_tester_command_ok("payecs_advance", "[42]");
+	payz_tester_wait_component(&buffer, &error,
+				   42, "lightningd:error");
+	(void) error;
 
 	return 0;
 }
