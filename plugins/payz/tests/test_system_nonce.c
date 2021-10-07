@@ -40,22 +40,8 @@ int main (int argc, char **argv)
 	/* Wait for lightningd:nonce component to appear (race condition with
 	 * the plugin process!).
 	 */
-	found = false;
-	while (!found) {
-		ret = payz_tester_command(&buffer, &result,
-					  "payecs_getcomponents",
-					  "[42, [\"lightningd:nonce\"]]");
-		assert(ret);
-
-		nonce = json_get_member(buffer, result, "lightningd:nonce");
-		assert(nonce);
-
-		/* Not appear yet?  Try again.  */
-		if (json_tok_is_null(buffer, nonce))
-			continue;
-
-		found = true;
-	}
+	payz_tester_wait_component(&buffer, &nonce,
+				   42, "lightningd:nonce");
 	/* Should be a 64-char hex string.  */
 	assert(nonce->type == JSMN_STRING);
 	assert(nonce->end - nonce->start == 64);

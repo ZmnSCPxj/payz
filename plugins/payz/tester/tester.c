@@ -337,3 +337,88 @@ void payz_tester_command_ok(const char *method,
 		     json_tok_full_len(result),
 		     json_tok_full(buffer, result));
 }
+
+/*-----------------------------------------------------------------------------
+Component Waiting
+-----------------------------------------------------------------------------*/
+
+static void
+payz_tester_wait_component_generic(const char *api_name,
+				   bool expected_found,
+				   const char **buffer,
+				   const jsmntok_t **component,
+				   u32 entity,
+				   const char *component_name)
+{
+	struct timemono start = time_mono();
+
+	const jsmntok_t *result;
+
+	bool found = false;
+	bool ret;
+
+	do {
+		const char *params;
+
+		if (time_greater(timemono_since(start), TESTER_TIMEOUT))
+			errx(1,
+			    "%s(%"PRIu32", %s): "
+			    "Timed out!",
+			    api_name,
+			    entity, component_name);
+
+		/* Since we use tmpctx and payz_tester_command clears that,
+		 * we have to regen the params at each loop iteration.
+		 */
+		params = tal_fmt(tmpctx, "[%"PRIu32", [\"%s\"]]",
+				 entity, component_name);
+		ret = payz_tester_command(buffer, &result,
+					  "payecs_getcomponents", params);
+		if (!ret)
+			errx(1,
+			     "%s(%"PRIu32", %s): "
+			     "payecs_getcomponents failed! %.*s",
+			     api_name,
+			     entity, component_name,
+			     json_tok_full_len(result),
+			     json_tok_full(*buffer, result));
+
+		*component = json_get_member(*buffer, result, component_name);
+		if (!(*component))
+			errx(1,
+			     "%s(%"PRIu32", %s): "
+			     "payecs_getcomponents did not return "
+			     "component??? %.*s",
+			     api_name,
+			     entity, component_name,
+			     json_tok_full_len(result),
+			     json_tok_full(*buffer, result));
+		found = !json_tok_is_null(*buffer, *component);
+	} while (found != expected_found);
+}
+
+void payz_tester_wait_component(const char **buffer,
+				const jsmntok_t **component,
+				u32 entity,
+				const char *component_name)
+{
+	/* Wait for "found" to be true.  */
+	payz_tester_wait_component_generic("payz_tester_wait_component",
+					   true,
+					   buffer, component,
+					   entity, component_name);
+}
+void payz_tester_wait_detach_component(u32 entity,
+				       const char *component_name)
+{
+	/* Dummy variables.  */
+	const char *buffer;
+	const jsmntok_t *component;
+
+	/* Wait for "found" to be false.  */
+	payz_tester_wait_component_generic("payz_tester_wait_detach_component",
+					   false,
+					   &buffer, &component,
+					   entity, component_name);
+}
+
