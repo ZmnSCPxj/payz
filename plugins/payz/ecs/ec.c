@@ -268,8 +268,14 @@ void ec_set_component_datuml(struct ec *ec,
 			     const char *value,
 			     size_t len)
 {
-	ec_set_component(ec, entity, component, value,
-			 json_parse_simple(tmpctx, value, len));
+	jsmntok_t *tok;
+
+	if (value)
+		tok = json_parse_simple(tmpctx, value, len);
+	else
+		tok = NULL;
+
+	ec_set_component(ec, entity, component, value, tok);
 }
 
 void ec_set_component_datum(struct ec *ec,
@@ -277,8 +283,14 @@ void ec_set_component_datum(struct ec *ec,
 			    const char *component,
 			    const char *valuez)
 {
-	ec_set_component_datuml(ec, entity, component, valuez,
-				strlen(valuez));
+	size_t len;
+
+	if (valuez)
+		len = strlen(valuez);
+	else
+		len = 0;
+
+	ec_set_component_datuml(ec, entity, component, valuez, len);
 }
 
 /*-----------------------------------------------------------------------------
