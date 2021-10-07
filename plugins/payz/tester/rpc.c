@@ -388,7 +388,7 @@ static void payz_tester_rpc_listenfd(struct payz_tester_rpc *rpc,
 	tal_arr_expand(&rpc->fds, newfd);
 	/* Create a new connection object.  */
 	conn = payz_tester_rpc_conn_new(rpc, rpc->queues, fd, rpc->timeout);
-	sintmap_add(&rpc->conns, fd, conn);
+	sintmap_add(&rpc->conns, newfd, conn);
 }
 
 static void payz_tester_rpc_fd(struct payz_tester_rpc *rpc,
