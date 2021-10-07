@@ -360,12 +360,37 @@ payz_tester_wait_component_generic(const char *api_name,
 	do {
 		const char *params;
 
-		if (time_greater(timemono_since(start), TESTER_TIMEOUT))
+		if (time_greater(timemono_since(start), TESTER_TIMEOUT)) {
+			const char *rbuf;
+			const jsmntok_t *result;
+
+			char *systrace;
+			char *listentities;
+
+			(void) payz_tester_command(&rbuf, &result,
+						   "payecs_systrace",
+						   tal_fmt(tmpctx,
+							   "[%"PRIu32"]",
+							   entity));
+			systrace = tal_strndup(NULL,
+					       json_tok_full(rbuf, result),
+					       json_tok_full_len(result));
+			(void) payz_tester_command(&rbuf, &result,
+						   "payecs_listentities",
+						   "[]");
+			listentities = tal_strndup(systrace,
+						   json_tok_full(rbuf, result),
+						   json_tok_full_len(result));
+			tal_steal(tmpctx, systrace);
 			errx(1,
 			    "%s(%"PRIu32", %s): "
-			    "Timed out!",
+			    "Timed out!\n"
+			    "\nsystrace: %s\n"
+			    "\nlistentities: %s\n",
 			    api_name,
-			    entity, component_name);
+			    entity, component_name,
+			    systrace, listentities);
+		}
 
 		/* Since we use tmpctx and payz_tester_command clears that,
 		 * we have to regen the params at each loop iteration.
