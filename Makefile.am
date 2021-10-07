@@ -167,6 +167,7 @@ TESTS = \
 	plugins/payz/tests/test_getdefaultsystems \
 	plugins/payz/tests/test_setcomponents \
 	plugins/payz/tests/test_simple \
+	plugins/payz/tests/test_system_invoice_amount \
 	plugins/payz/tests/test_system_nonce
 check_PROGRAMS = $(TESTS)
 

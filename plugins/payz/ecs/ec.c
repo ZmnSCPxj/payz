@@ -175,7 +175,7 @@ void ec_set_component(struct ec *ec,
 		detach = true;
 	}
 
-	if (json_tok_is_null(buffer, tok))
+	if (!detach && json_tok_is_null(buffer, tok))
 		detach = true;
 
 	entityrow = uintmap_get(&ec->entity_map, entity);
