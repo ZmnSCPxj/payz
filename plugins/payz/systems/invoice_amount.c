@@ -5,15 +5,17 @@
 #include<common/utils.h>
 #include<plugins/libplugin.h>
 
-static void invoice_amount_msat(struct ecs *ecs, struct command *cmd,
-				u32 entity,
-				const char *buffer,
-				const jsmntok_t *components);
-static void fail_invoice_amount_and_amount(struct ecs *ecs,
-					   struct command *cmd,
-					   u32 entity,
-					   const char *buffer,
-					   const jsmntok_t *components);
+static struct command_result *
+invoice_amount_msat(struct ecs *ecs, struct command *cmd,
+		    u32 entity,
+		    const char *buffer,
+		    const jsmntok_t *components);
+static struct command_result *
+fail_invoice_amount_and_amount(struct ecs *ecs,
+			       struct command *cmd,
+			       u32 entity,
+			       const char *buffer,
+			       const jsmntok_t *components);
 
 struct ecs_register_desc system_invoice_amount[] = {
 	ECS_REGISTER_NAME("lightningd:invoice_amount_msat"),
@@ -31,10 +33,11 @@ struct ecs_register_desc system_invoice_amount[] = {
 	ECS_REGISTER_OVER_AND_OUT()
 };
 
-static void invoice_amount_msat(struct ecs *ecs, struct command *cmd,
-				u32 entity,
-				const char *buffer,
-				const jsmntok_t *components)
+static struct command_result *
+invoice_amount_msat(struct ecs *ecs, struct command *cmd,
+		    u32 entity,
+		    const char *buffer,
+		    const jsmntok_t *components)
 {
 	const jsmntok_t *amount_msat;
 
@@ -46,14 +49,15 @@ static void invoice_amount_msat(struct ecs *ecs, struct command *cmd,
 				NULL);
 	ecs_set_component(ecs, entity, "lightningd:amount", buffer, amount_msat);
 
-	ecs_advance_done(cmd->plugin, ecs, entity);
+	return ecs_advance_done(cmd, ecs, entity);
 }
 
-static void fail_invoice_amount_and_amount(struct ecs *ecs,
-					   struct command *cmd,
-					   u32 entity,
-					   const char *buffer,
-					   const jsmntok_t *components)
+static struct command_result *
+fail_invoice_amount_and_amount(struct ecs *ecs,
+			       struct command *cmd,
+			       u32 entity,
+			       const char *buffer,
+			       const jsmntok_t *components)
 {
 	struct json_stream *js;
 
@@ -74,4 +78,6 @@ static void fail_invoice_amount_and_amount(struct ecs *ecs,
 
 	/* Stop processing.  */
 	ecs_set_component_datum(ecs, entity, "lightningd:systems", NULL);
+
+	return ecs_done(cmd, ecs);
 }

@@ -8,8 +8,11 @@
  * though, and that file refers to some functions (which
  * are disabled in DEVELOPER=0 mode), so add those disabled
  * here.
+ * It is also included by plugins/libplugin.c, too, so
+ * add those disabled here.
  */
 
 #define memleak_add_helper(p, cb)
+#define notleak(p) (p)
 
 #endif /* PAYZ_COMMON_MEMLEAK_H */

@@ -7,12 +7,14 @@
 #include<common/utils.h>
 #include<plugins/libplugin.h>
 
-static void parse_invoice(struct ecs *, struct command *,
-			  u32 entity,
-			  const char *buffer, const jsmntok_t *eo);
-static void promote_invoice_type(struct ecs *ecs, struct command *cmd,
-				 u32 entity,
-				 const char *buffer, const jsmntok_t *eo);
+static struct command_result *
+parse_invoice(struct ecs *, struct command *,
+	      u32 entity,
+	      const char *buffer, const jsmntok_t *eo);
+static struct command_result *
+promote_invoice_type(struct ecs *ecs, struct command *cmd,
+		     u32 entity,
+		     const char *buffer, const jsmntok_t *eo);
 
 struct ecs_register_desc system_parse_invoice[] = {
 	ECS_REGISTER_NAME("lightningd:parse_invoice"),
@@ -51,9 +53,10 @@ parse_invoice_decode_ng(struct command *cmd,
 			 const jsmntok_t *res,
 			 struct parse_invoice_closure *closure);
 
-static void parse_invoice(struct ecs *ecs, struct command *cmd,
-			  u32 entity,
-			  const char *buffer, const jsmntok_t *eo)
+static struct command_result *
+parse_invoice(struct ecs *ecs, struct command *cmd,
+              u32 entity,
+              const char *buffer, const jsmntok_t *eo)
 {
 	const jsmntok_t *invoice;
 
@@ -77,7 +80,7 @@ static void parse_invoice(struct ecs *ecs, struct command *cmd,
 				    &parse_invoice_decode_ng,
 				    closure);
 	json_add_tok(req->js, "string", invoice, buffer);
-	(void) send_outreq(cmd->plugin, req);
+	return send_outreq(cmd->plugin, req);
 }
 
 static struct command_result *
@@ -109,9 +112,7 @@ parse_invoice_decode_ok(struct command *cmd,
 				  buf, value);
 	}
 
-	ecs_advance_done(cmd->plugin, closure->ecs, closure->entity);
-
-	return NULL;
+	return ecs_advance_done(cmd, closure->ecs, closure->entity);
 }
 static struct command_result *
 parse_invoice_decode_ng(struct command *cmd,
@@ -126,7 +127,7 @@ parse_invoice_decode_ng(struct command *cmd,
 	ecs_set_component(closure->ecs, closure->entity,
 			  "lightningd:systems", NULL, NULL);
 
-	return NULL;
+	return ecs_done(cmd, closure->ecs);
 }
 
 /*-----------------------------------------------------------------------------
@@ -141,9 +142,10 @@ Invoice Type Promotion
  * `lightningd:invoice:type:bolt11 invoice`.
  */
 
-static void promote_invoice_type(struct ecs *ecs, struct command *cmd,
-				 u32 entity,
-				 const char *buffer, const jsmntok_t *eo)
+static struct command_result *
+promote_invoice_type(struct ecs *ecs, struct command *cmd,
+		     u32 entity,
+		     const char *buffer, const jsmntok_t *eo)
 {
 	const jsmntok_t *type_tok;
 	char *type;
@@ -156,5 +158,5 @@ static void promote_invoice_type(struct ecs *ecs, struct command *cmd,
 					type),
 				"true");
 
-	ecs_advance_done(cmd->plugin, ecs, entity);
+	return ecs_advance_done(cmd, ecs, entity);
 }

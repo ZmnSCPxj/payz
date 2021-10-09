@@ -211,11 +211,17 @@ ecs_advance_wrapper_errcb(struct plugin *plugin,
 	return wrapper->errcb(plugin, wrapper->ecs, error, wrapper->cbarg);
 }
 
-void ecs_advance_done(struct plugin *plugin,
-		      struct ecs *ecs,
-		      u32 entity)
+struct command_result *ecs_advance_done(struct command *command,
+					struct ecs *ecs,
+					u32 entity)
 {
-	ecsys_advance_done(plugin, ecs->ecsys, entity);
+	ecsys_advance_done(command->plugin, ecs->ecsys, entity);
+	return ecs_done(command, ecs);
+}
+struct command_result *ecs_done(struct command *command,
+				struct ecs *ecs)
+{
+	return notification_handled(command);
 }
 
 bool ecs_system_exists(const struct ecs *ecs,
@@ -228,10 +234,10 @@ bool ecs_system_exists(const struct ecs *ecs,
 Triggering of Built-in Systems
 -----------------------------------------------------------------------------*/
 
-void ecs_system_notify(struct ecs *ecs,
-		       struct command *command,
-		       const char *buffer,
-		       const jsmntok_t *params)
+struct command_result *ecs_system_notify(struct ecs *ecs,
+					 struct command *command,
+					 const char *buffer,
+					 const jsmntok_t *params)
 {
 	const char *system;
 	const jsmntok_t *entity;
@@ -254,7 +260,7 @@ void ecs_system_notify(struct ecs *ecs,
 			   ECS_SYSTEM_NOTIFICATION,
 			   json_tok_full_len(params),
 			   json_tok_full(buffer, params));
-		return;
+		return notification_handled(command);
 	}
 
 	wrapper = strmap_get(&ecs->system_funcs, system);
@@ -263,7 +269,7 @@ void ecs_system_notify(struct ecs *ecs,
 		 * were provided by other plugins will not be in
 		 * our strmap.
 		 */
-		return;
+		return notification_handled(command);
 
 	entity = json_get_member(buffer, params, "entity");
 	if (!entity) {
@@ -273,7 +279,7 @@ void ecs_system_notify(struct ecs *ecs,
 			   ECS_SYSTEM_NOTIFICATION,
 			   json_tok_full_len(params),
 			   json_tok_full(buffer, params));
-		return;
+		return notification_handled(command);
 	}
 
 	error = json_scan(tmpctx, buffer, entity,
@@ -286,7 +292,7 @@ void ecs_system_notify(struct ecs *ecs,
 			   ECS_SYSTEM_NOTIFICATION,
 			   json_tok_full_len(entity),
 			   json_tok_full(buffer, entity));
-		return;
+		return notification_handled(command);
 	}
 
 	/* Check all the required components are in the parameters.  */
@@ -301,11 +307,11 @@ void ecs_system_notify(struct ecs *ecs,
 				   wrapper->required[i],
 				   json_tok_full_len(entity),
 				   json_tok_full(buffer, entity));
-			return;
+			return notification_handled(command);
 		}
 	}
 
-	wrapper->func(ecs, command, eid, buffer, entity);
+	return wrapper->func(ecs, command, eid, buffer, entity);
 }
 
 /*-----------------------------------------------------------------------------

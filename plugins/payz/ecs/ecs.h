@@ -207,11 +207,35 @@ struct command_result *ecs_advance_(struct plugin *plugin,
  * Must be called from system code.
  *
  * @desc Our expectation is that the supermajority of systems
- * will, at the end of their processing, simply terminate.
+ * will, at the end of their processing, simply advance to the
+ * next system.
+ *
+ * @param command - the command that was passed in to the system
+ * function.
+ * @param ecs - the ECS framework that was passed in to the
+ * system function.
+ * @para entity - the entity ID to advance.
+ *
+ * @return - directly from your system code.
  */
-void ecs_advance_done(struct plugin *plugin,
-		      struct ecs *ecs,
-		      u32 entity);
+struct command_result *ecs_advance_done(struct command *command,
+					struct ecs *ecs,
+					u32 entity);
+
+/** ecs_done
+ *
+ * @brief Signals that the system has completed execution.
+ * Must be called from system code.
+ *
+ * @param command - the command that was passed in to the system
+ * function.
+ * @param ecs - the ECS framework that was passed in to the
+ * system function.
+ *
+ * @return - directly from your system code.
+ */
+struct command_result *ecs_done(struct command *command,
+				struct ecs *ecs);
 
 /** ecs_system_exists
  *
@@ -243,11 +267,16 @@ bool ecs_system_exists(const struct ecs *ecs,
  * @param buffer - the buffer for JSON parameters.
  * @param params - the JSMN token for parameters of the
  * system triggering notification.
+ *
+ * @return - should be returned by the notification
+ * handler.
+ * The ECS object will take responsibility for calling
+ * `notification_handled`.
  */
-void ecs_system_notify(struct ecs *ecs,
-		       struct command *command,
-		       const char *buffer,
-		       const jsmntok_t *params);
+struct command_result *ecs_system_notify(struct ecs *ecs,
+					 struct command *command,
+					 const char *buffer,
+					 const jsmntok_t *params);
 
 /*-----------------------------------------------------------------------------
 System Registration
@@ -305,10 +334,10 @@ struct ecs_register_desc {
  * were registered as required.
  * The entity given is the numeric entity id.
  */
-typedef
-void (*ecs_system_function)(struct ecs *, struct command *,
-			    u32 entity,
-			    const char *buffer, const jsmntok_t *components);
+typedef struct command_result *
+(*ecs_system_function)(struct ecs *, struct command *,
+		       u32 entity,
+		       const char *buffer, const jsmntok_t *components);
 
 #define ECS_REGISTER_NAME(name) \
 	{ ECS_REGISTER_TYPE_NAME, \
@@ -317,6 +346,9 @@ void (*ecs_system_function)(struct ecs *, struct command *,
  * not true on some really weird hardware (16-bit x86), but those hardware
  * are unlikely to run anything Unix-like anyway and we are dependent on
  * sockets and pipes and processes and other Unixy things.
+ *
+ * The function is responsible for causing `ecs_advance_done` or
+ * `ecs_done` to be called at the end of the system processing.
  */
 #define ECS_REGISTER_FUNC(func) \
 	{ ECS_REGISTER_TYPE_FUNC, \

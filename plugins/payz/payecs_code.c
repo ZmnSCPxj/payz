@@ -46,7 +46,7 @@ payecs_systrace(struct command *cmd,
 		const char *buf,
 		const jsmntok_t *params);
 
-static void
+static struct command_result *
 payecs_system_notification(struct command *cmd,
 			   const char *buf,
 			   const jsmntok_t *params);
@@ -621,7 +621,7 @@ static char *format_time(const tal_t *ctx, struct timeabs time)
 ECS System Trigger Notification
 -----------------------------------------------------------------------------*/
 
-static void
+static struct command_result *
 payecs_system_notification(struct command *cmd,
 			   const char *buf,
 			   const jsmntok_t *params)
@@ -635,7 +635,7 @@ payecs_system_notification(struct command *cmd,
 			   ECS_SYSTEM_NOTIFICATION,
 			   json_tok_full_len(params),
 			   json_tok_full(buf, params));
-		return;
+		return notification_handled(cmd);
 	}
 	plugin_log(cmd->plugin, LOG_DBG,
 		   "%s payload: %.*s",
@@ -643,5 +643,5 @@ payecs_system_notification(struct command *cmd,
 		   json_tok_full_len(payload),
 		   json_tok_full(buf, payload));
 	payecs_systrace_add(cmd->plugin, buf, payload);
-	ecs_system_notify(payz_top->ecs, cmd, buf, payload);
+	return ecs_system_notify(payz_top->ecs, cmd, buf, payload);
 }

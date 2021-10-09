@@ -32,31 +32,36 @@ static const char *default_exemptfee = "\"5000msat\"";
 /* We get this at init time.  */
 static char *default_maxdelay = NULL;
 
-static void defaulter_riskfactor(struct ecs *ecs,
-				 struct command *cmd,
-				 u32 entity,
-				 const char *buffer,
-				 const jsmntok_t *components);
-static void defaulter_maxfeepercent(struct ecs *ecs,
-				    struct command *cmd,
-				    u32 entity,
-				    const char *buffer,
-				    const jsmntok_t *components);
-static void defaulter_retry_for(struct ecs *ecs,
-				struct command *cmd,
-				u32 entity,
-				const char *buffer,
-				const jsmntok_t *components);
-static void defaulter_maxdelay(struct ecs *ecs,
-			       struct command *cmd,
-			       u32 entity,
-			       const char *buffer,
-			       const jsmntok_t *components);
-static void defaulter_exemptfee(struct ecs *ecs,
-				struct command *cmd,
-				u32 entity,
-				const char *buffer,
-				const jsmntok_t *components);
+static struct command_result *
+defaulter_riskfactor(struct ecs *ecs,
+		     struct command *cmd,
+		     u32 entity,
+		     const char *buffer,
+		     const jsmntok_t *components);
+static struct command_result *
+defaulter_maxfeepercent(struct ecs *ecs,
+			struct command *cmd,
+			u32 entity,
+			const char *buffer,
+			const jsmntok_t *components);
+static struct command_result *
+defaulter_retry_for(struct ecs *ecs,
+		    struct command *cmd,
+		    u32 entity,
+		    const char *buffer,
+		    const jsmntok_t *components);
+static struct command_result *
+defaulter_maxdelay(struct ecs *ecs,
+		   struct command *cmd,
+		   u32 entity,
+		   const char *buffer,
+		   const jsmntok_t *components);
+static struct command_result *
+defaulter_exemptfee(struct ecs *ecs,
+		    struct command *cmd,
+		    u32 entity,
+		    const char *buffer,
+		    const jsmntok_t *components);
 
 struct ecs_register_desc system_defaulter[] = {
 	ECS_REGISTER_NAME("lightningd:default_riskfactor"),
@@ -92,75 +97,76 @@ struct ecs_register_desc system_defaulter[] = {
 	ECS_REGISTER_OVER_AND_OUT()
 };
 
-#include<stdio.h>
-
 void system_defaulter_init(struct plugin *plugin)
 {
-fprintf(stderr, "system_defaulter_init: before rpc_scan.\n");
 	rpc_scan(plugin, "listconfigs",
 		 take(json_out_obj(NULL, NULL, NULL)),
 		 "{max-locktime-blocks:%}",
 		 JSON_SCAN_TAL(plugin, json_strdup, &default_maxdelay));
-fprintf(stderr, "system_defaulter_init: after rpc_scan.\n");
 }
 
-static void defaulter_riskfactor(struct ecs *ecs,
-				 struct command *cmd,
-				 u32 entity,
-				 const char *buffer,
-				 const jsmntok_t *components)
+static struct command_result *
+defaulter_riskfactor(struct ecs *ecs,
+		     struct command *cmd,
+		     u32 entity,
+		     const char *buffer,
+		     const jsmntok_t *components)
 {
 	ecs_set_component_datum(ecs, entity,
 				"lightningd:riskfactor",
 				default_riskfactor);
-	ecs_advance_done(cmd->plugin, ecs, entity);
+	return ecs_advance_done(cmd, ecs, entity);
 }
 
-static void defaulter_maxfeepercent(struct ecs *ecs,
-				    struct command *cmd,
-				    u32 entity,
-				    const char *buffer,
-				    const jsmntok_t *components)
+static struct command_result *
+defaulter_maxfeepercent(struct ecs *ecs,
+			struct command *cmd,
+			u32 entity,
+			const char *buffer,
+			const jsmntok_t *components)
 {
 	ecs_set_component_datum(ecs, entity,
 				"lightningd:maxfeepercent",
 				default_maxfeepercent);
-	ecs_advance_done(cmd->plugin, ecs, entity);
+	return ecs_advance_done(cmd, ecs, entity);
 }
 
-static void defaulter_retry_for(struct ecs *ecs,
-				struct command *cmd,
-				u32 entity,
-				const char *buffer,
-				const jsmntok_t *components)
+static struct command_result *
+defaulter_retry_for(struct ecs *ecs,
+		    struct command *cmd,
+		    u32 entity,
+		    const char *buffer,
+		    const jsmntok_t *components)
 {
 	ecs_set_component_datum(ecs, entity,
 				"lightningd:retry_for",
 				default_retry_for);
-	ecs_advance_done(cmd->plugin, ecs, entity);
+	return ecs_advance_done(cmd, ecs, entity);
 }
 
-static void defaulter_exemptfee(struct ecs *ecs,
-				struct command *cmd,
-				u32 entity,
-				const char *buffer,
-				const jsmntok_t *components)
+static struct command_result *
+defaulter_exemptfee(struct ecs *ecs,
+		    struct command *cmd,
+		    u32 entity,
+		    const char *buffer,
+		    const jsmntok_t *components)
 {
 	ecs_set_component_datum(ecs, entity,
 				"lightningd:exemptfee",
 				default_exemptfee);
-	ecs_advance_done(cmd->plugin, ecs, entity);
+	return ecs_advance_done(cmd, ecs, entity);
 }
 
-static void defaulter_maxdelay(struct ecs *ecs,
-			       struct command *cmd,
-			       u32 entity,
-			       const char *buffer,
-			       const jsmntok_t *components)
+static struct command_result *
+defaulter_maxdelay(struct ecs *ecs,
+		   struct command *cmd,
+		   u32 entity,
+		   const char *buffer,
+		   const jsmntok_t *components)
 {
 	assert(default_maxdelay);
 	ecs_set_component_datum(ecs, entity,
 				"lightningd:maxdelay",
 				default_maxdelay);
-	ecs_advance_done(cmd->plugin, ecs, entity);
+	return ecs_advance_done(cmd, ecs, entity);
 }
