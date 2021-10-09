@@ -119,6 +119,8 @@ PAY_SOURCES = \
 	plugins/payz/payecs_data.h \
 	plugins/payz/setsystems.c \
 	plugins/payz/setsystems.h \
+	plugins/payz/systems/defaulter.c \
+	plugins/payz/systems/defaulter.h \
 	plugins/payz/systems/invoice_amount.c \
 	plugins/payz/systems/invoice_amount.h \
 	plugins/payz/systems/nonce.c \
@@ -167,6 +169,7 @@ TESTS = \
 	plugins/payz/tests/test_getdefaultsystems \
 	plugins/payz/tests/test_setcomponents \
 	plugins/payz/tests/test_simple \
+	plugins/payz/tests/test_system_defaulter \
 	plugins/payz/tests/test_system_invoice_amount \
 	plugins/payz/tests/test_system_nonce
 check_PROGRAMS = $(TESTS)
